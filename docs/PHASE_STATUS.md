@@ -63,3 +63,22 @@ Current total: 57 tests passing, typecheck clean.
 - Topify integration and webhook signature verification (blocked on the docs)
 - Cart, checkout and account UI, API routes, and the POS, KDS and admin screens
 - Notifications, delivery assignment UI, reporting, mobile apps, Cloudflare deployment, CI and rollback
+
+## Topify integration (from https://pay.topify.ng/docs)
+
+Done in `packages/shared/src/topify/`, with 10 tests. Not yet connected to a database or live keys.
+
+- Client: `initializeCheckout` (public key), `createDynamicTransfer`, `verifyTransaction` and `getPaymentStatus` (secret key). Base URL `https://apipay.topify.ng`, Bearer auth, amounts in kobo.
+- Webhooks: HMAC-SHA512 over the raw body, hex, compared in constant time. Deduplicate on `data.reference`.
+- Confirmation: a gateway report must match our reference, kobo amount and currency. Only then is a payment marked successful. Redirects never mark a payment paid.
+- Status: `successful` and `success` are both accepted. `expired` maps to FAILED.
+- Refunds: the docs describe no refund endpoint, so none is implemented. The `transaction.reversed` event is recorded only.
+
+Documentation inconsistencies to confirm with Topify:
+1. The status endpoint says no auth header is needed, but its table lists a Bearer public key.
+2. The sample webhook handler uses `!==`, which contradicts the constant-time comparison the docs recommend. The code uses constant-time comparison.
+3. The webhook secret is not named in the docs. The code takes it from configuration (`TOPIFY_WEBHOOK_SECRET`). Confirm which key Topify signs with.
+4. Status spelling differs between endpoints (`successful` vs `success`). Both are handled.
+5. The `reference` format is unspecified. The code accepts 6–64 characters of letters, digits, `_` and `-`.
+
+Total: 67 tests passing.
