@@ -26,6 +26,7 @@ export default async function AdminHome() {
         <p><Link href="/admin/menu">Menu: categories, dishes and availability</Link></p>
         <p><Link href="/admin/orders">Orders: open orders and status</Link></p>
         <p><Link href="/admin/kitchen">Kitchen display</Link></p>
+        <p><Link href="/admin/staff">Staff: accounts and roles</Link></p>
       </section>
     </div>
   );
