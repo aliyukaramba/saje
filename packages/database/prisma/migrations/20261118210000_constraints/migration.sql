@@ -19,5 +19,5 @@ CREATE UNIQUE INDEX tablesession_one_open_per_table ON "TableSession" ("tableId"
 -- No overlapping active bookings on the same table
 CREATE EXTENSION IF NOT EXISTS btree_gist;
 ALTER TABLE "Reservation" ADD CONSTRAINT reservation_no_overlap
-  EXCLUDE USING gist ("tableId" WITH =, tstzrange("startsAt", "endsAt") WITH &&)
+  EXCLUDE USING gist ("tableId" WITH =, tsrange("startsAt", "endsAt") WITH &&)
   WHERE ("status" IN ('PENDING', 'CONFIRMED', 'SEATED') AND "tableId" IS NOT NULL);
