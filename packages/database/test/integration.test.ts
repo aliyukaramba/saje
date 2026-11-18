@@ -51,6 +51,8 @@ describe.skipIf(!enabled)("database integration (Neon dev branch)", () => {
     const table = await prisma.diningTable.upsert({
       where: { number: "TEST-1" }, update: {}, create: { number: "TEST-1", areaId: area.id },
     });
+    // Clear bookings left behind by an earlier interrupted run on this table.
+    await prisma.reservation.deleteMany({ where: { tableId: table.id } });
     const start = new Date("2030-01-01T18:00:00Z");
     const end = new Date("2030-01-01T20:00:00Z");
     const first = await prisma.reservation.create({
