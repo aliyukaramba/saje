@@ -2,6 +2,11 @@
 // Demo menu items are placeholders, prefixed "Demo", and can be deleted in the admin area.
 // Run with: npm run seed -w @restaurant/database
 // Required env: SEED_ADMIN_EMAIL, SEED_ADMIN_PASSWORD (min 10 chars). Never commit these values.
+import path from "node:path";
+import { config } from "dotenv";
+// Load packages/database/.env so the seed works in any terminal, not only ones where DATABASE_URL is set.
+config({ path: path.resolve(__dirname, "../.env") });
+
 import { PrismaClient } from "@prisma/client";
 import { PERMISSIONS, ROLE_KEYS, ROLE_PERMISSIONS, argon2Hasher } from "@restaurant/shared";
 
