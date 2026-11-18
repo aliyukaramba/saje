@@ -8,3 +8,4 @@ export * from "./auth/tokens";
 export * from "./checkout";
 export * from "./ops";
 export * from "./topify";
+export * from "./auth/argon2";
