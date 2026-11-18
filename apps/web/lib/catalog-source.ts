@@ -2,6 +2,8 @@
 // If the database is unreachable the page shows an error state; nothing is hardcoded.
 import { prisma, loadMenuFromDb, type MenuItemView } from "@restaurant/database";
 
+export type { MenuItemView } from "@restaurant/database";
+
 export interface WebMenuData {
   categories: { id: string; name: string }[];
   items: MenuItemView[];
