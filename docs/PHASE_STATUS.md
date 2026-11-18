@@ -42,3 +42,24 @@
 ## Design direction
 
 See `docs/DESIGN.md`.
+
+## Rules layers added (phases 2–7, no database or payment API required)
+
+Each item is pure TypeScript with tests in `packages/shared`. None is connected to a database, UI or API yet.
+
+| Area | Module | Tests |
+|---|---|---|
+| Fulfilment (pickup lead time, delivery zones and minimums, service switches) | `checkout.ts` | 6 |
+| QR tokens (hash-only storage), one open session per table, bill splitting | `ops/tables.ts` | 6 (part of ops) |
+| Topify status rules (no success from redirects, transitions), offline payments (cash, bank transfer, POS), payment status derivation, webhook de-duplication | `ops/payments.ts` | 9 (part of ops) |
+| Recipe-based stock deductions, idempotent per order line, shortfall reporting | `ops/inventory.ts` | 4 (part of ops) |
+| Reservation conflicts (half-open intervals), table assignment | `ops/reservations.ts` | 4 (part of ops) |
+
+Current total: 57 tests passing, typecheck clean.
+
+## Still not done
+
+- Database adapters, migrations and seed data (blocked on Prisma binaries)
+- Topify integration and webhook signature verification (blocked on the docs)
+- Cart, checkout and account UI, API routes, and the POS, KDS and admin screens
+- Notifications, delivery assignment UI, reporting, mobile apps, Cloudflare deployment, CI and rollback
