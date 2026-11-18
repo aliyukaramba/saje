@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { currentStaff } from "../../lib/auth";
 import { logoutAction } from "./login/actions";
@@ -20,8 +21,9 @@ export default async function AdminHome() {
         <p>{staff.user.fullName} ({staff.user.email})</p>
         <p>Roles: {staff.roles.join(", ") || "none"}</p>
       </section>
-      <section className="empty" style={{ marginTop: 16 }}>
-        Menu, orders and staff management screens are next.
+      <section className="card" style={{ marginTop: 16 }}>
+        <h3>Manage</h3>
+        <p><Link href="/admin/menu">Menu: categories, dishes and availability</Link></p>
       </section>
     </div>
   );

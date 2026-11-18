@@ -1,7 +1,7 @@
 // Server-side auth for the website and admin area. Session tokens live in an httpOnly cookie.
 import { cookies } from "next/headers";
 import { prisma, createAccountStore, createSessionStore } from "@restaurant/database";
-import { AuthService, argon2Hasher } from "@restaurant/shared";
+import { AuthService, argon2Hasher, canAny, type Permission, type RoleKey } from "@restaurant/shared";
 
 export const SESSION_COOKIE = "saje_session";
 
@@ -43,5 +43,13 @@ export async function currentStaff() {
     sessionId: resolved.sessionId,
     user: { id: user.id, fullName: user.fullName, email: user.email },
     roles: user.roles.map((r) => r.role.name),
+    roleKeys: user.roles.map((r) => r.role.key) as RoleKey[],
   };
+}
+
+/** Returns the signed-in staff member if they hold the permission; otherwise null. */
+export async function staffWith(permission: Permission) {
+  const staff = await currentStaff();
+  if (!staff || !canAny(staff.roleKeys, permission)) return null;
+  return staff;
 }
