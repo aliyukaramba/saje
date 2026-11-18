@@ -1,30 +1,44 @@
 # Phase status
 
-## Phase 1 — Foundation: partially complete
+## Phase 1 — Foundation: code complete, runtime checks blocked
 
 | Item | Status | Notes |
 |---|---|---|
 | Monorepo (npm workspaces) | Done | `apps/web`, `packages/shared`, `packages/database` |
 | Design tokens from reference screens | Done | `apps/web/app/globals.css` |
-| Web shell builds (`next build`) | Done | Static, no hardcoded menu data |
-| Role and permission model | Done (logic + tests) | `packages/shared/src/permissions.ts` — 16 tests pass with `order-status` and `money` |
-| Order status state machine | Done (logic + tests) | Rejects skipped and backward steps |
-| Money math (integer minor units) | Done (logic + tests) | Discount, tax (basis points), delivery fee |
-| Prisma schema (full entity model) | **Written, not validated** | Prisma engine downloads are blocked in this sandbox (403 from binaries.prisma.sh), so `prisma validate` could not run |
-| Database migrations | Not started | Blocked on schema validation; needs a real PostgreSQL |
-| Authentication (Argon2id, sessions) | Not started | Next step |
-| Cloudflare runtime verification | Not started | Need to confirm Next.js adapter and Prisma driver support on Workers |
-| Dev and prod environments (branches `dev` and `main`) | Not started | No git remote configured yet |
+| Role and permission model | Done, tested | 4 tests |
+| Order status state machine | Done, tested | 6 tests |
+| Money math (integer minor units) | Done, tested | 6 tests |
+| Authentication service (register, login, sessions, logout, suspension, enumeration-safe errors) | Done, tested | 7 tests, in-memory stores |
+| Argon2id hashing | Done for Node, tested | `@node-rs/argon2`, OWASP minimum parameters. **Not verified on Workers**: native binary, needs a WebAssembly build |
+| Session tokens | Done, tested | 32 random bytes, only SHA-256 stored |
+| Prisma schema (full entity model) | Written, **not validated** | Prisma engine downloads blocked by policy (403 from binaries.prisma.sh) |
+| Database adapters (Postgres store implementations of the auth ports) | Not started | Needs Prisma client generation |
+| Migrations | Not started | Needs PostgreSQL and Prisma binaries |
+| Cloudflare runtime verification | Not started | OpenNext has a Workers guide and a Hyperdrive Prisma guide. Not yet tested here |
+| Git branches `main` (production) and `dev` (development) | Done (local only) | No remote configured, so nothing is deployed yet |
+| Separate env files per environment | Template only | `.env.example`; real values never committed |
+
+## Phase 2 — Menu and customer website: domain and UI shell done, data not wired
+
+| Item | Status | Notes |
+|---|---|---|
+| Price resolution (discount, variants) | Done, tested | `packages/shared/src/catalog/pricing.ts` |
+| Modifier rules (required, min and max, availability) | Done, tested | Same file |
+| Server-side cart pricing (never trusts client prices) | Done, tested | `priceCart()` |
+| Menu page and search and category filter | Done, builds | `/menu`. Shows an honest empty state |
+| Menu data from the database | **Not wired** | `apps/web/lib/catalog-source.ts` returns an empty catalog until Prisma is available |
+| Cart, checkout, customer accounts UI | Not started | Auth service exists. Pages and API routes still to write |
+| Terms, privacy, contact pages | Not started | Need the restaurant's actual content |
+| Product images (R2 upload) | Not started | |
 
 ## Blockers
 
-1. **Topify documentation.** `https://pay.topify.ng/docs` is not on the fetch allowlist, and web search did not return it. Per the spec, no payment endpoints or webhook formats will be guessed. Phase 5 is blocked until the docs are provided (paste the content or add the URL to the allowlist).
-2. **Prisma binaries.** Needed for `prisma validate`, `generate` and `migrate`. Either allow `binaries.prisma.sh` or run the validation in an environment that can reach it.
-3. **Cloudflare target.** Confirm the Workers compatibility approach (Next.js adapter, Prisma driver such as `@prisma/adapter-pg` with Hyperdrive) before Phase 2 deployment work.
-4. **Brand palette.** Colors in `globals.css` are estimates from the screenshots. Confirm the restaurant's real palette and logo.
+1. **Topify documentation.** `https://pay.topify.ng/docs` is not on the fetch allowlist, and search did not return it. Phase 5 is blocked until the docs are provided.
+2. **Prisma binaries.** `binaries.prisma.sh` is denied by policy. This blocks `prisma validate`, `generate`, migrations, and so the database-backed menu and auth stores.
+3. **Workers-compatible Argon2id.** Choose and test a WebAssembly Argon2id build before deploying auth to Workers.
+4. **Brand palette and logo.** Colors are estimates from the screenshots.
 
-## Design direction (from the reference screens)
+## Design direction
 
-- Restoo dashboard: light canvas, white cards, deep-teal hero card, orange and black chart accents, tidy sidebar with grouped labels.
-- Cravk food app: two-weight headlines (bold word plus light word), pill-shaped selectors with a black active state, black full-width primary button, orange-red prices, generous whitespace.
-- Font: system stack for now. Adding Google Fonts requires network access that this environment does not have.
+See `docs/DESIGN.md`.
