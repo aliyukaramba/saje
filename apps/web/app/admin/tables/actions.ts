@@ -7,8 +7,7 @@ import { z } from "zod";
 import { prisma } from "@restaurant/database";
 import { generateQrToken, hashQrToken } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
-
-export const QR_ONCE_COOKIE = "saje_qr_once";
+import { QR_ONCE_COOKIE } from "../../../lib/qr-cookie";
 
 function fail(message: string): never {
   redirect(`/admin/tables?error=${encodeURIComponent(message)}`);

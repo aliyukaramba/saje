@@ -3,7 +3,8 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
-import { createTable, issueTableLink, dismissTableLink, QR_ONCE_COOKIE } from "./actions";
+import { createTable, issueTableLink, dismissTableLink } from "./actions";
+import { QR_ONCE_COOKIE } from "../../../lib/qr-cookie";
 
 export const dynamic = "force-dynamic";
 
