@@ -24,6 +24,8 @@ export default async function AdminHome() {
       <section className="card" style={{ marginTop: 16 }}>
         <h3>Manage</h3>
         <p><Link href="/admin/menu">Menu: categories, dishes and availability</Link></p>
+        <p><Link href="/admin/orders">Orders: open orders and status</Link></p>
+        <p><Link href="/admin/kitchen">Kitchen display</Link></p>
       </section>
     </div>
   );
