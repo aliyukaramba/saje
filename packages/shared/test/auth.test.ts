@@ -115,7 +115,7 @@ describe("AuthService", () => {
 
 describe("argon2id adapter", () => {
   it("uses the OWASP minimum Argon2id parameters and round-trips a password", async () => {
-    expect(ARGON2_PARAMS.memoryCost).toBe(19456);
+    expect(ARGON2_PARAMS.memorySize).toBe(19456);
     const h = await argon2Hasher.hash("correct horse battery");
     expect(h.startsWith("$argon2id$")).toBe(true);
     expect(await argon2Hasher.verify(h, "correct horse battery")).toBe(true);
