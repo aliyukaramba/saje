@@ -1,29 +1,13 @@
-// Menu data source. The only implementation is database-backed (Prisma via Hyperdrive),
-// which is not wired yet, so this returns an empty catalog. Nothing is hardcoded here.
-export interface MenuItemView {
-  id: string;
-  name: string;
-  description: string | null;
-  imageUrl: string | null;
-  categoryId: string;
-  categoryName: string;
-  price: string;            // formatted by the server
-  discountPrice: string | null;
-  isFeatured: boolean;
-  isAvailable: boolean;
-}
+// Menu data for the website, read from the database on the server.
+// If the database is unreachable the page shows an error state; nothing is hardcoded.
+import { prisma, loadMenuFromDb, type MenuData } from "@restaurant/database";
 
-export interface MenuCategoryView {
-  id: string;
-  name: string;
-}
-
-export interface MenuData {
-  categories: MenuCategoryView[];
-  items: MenuItemView[];
-  source: "database" | "unavailable";
-}
+export type { MenuData, MenuItemView } from "@restaurant/database";
 
 export async function loadMenu(): Promise<MenuData> {
-  return { categories: [], items: [], source: "unavailable" };
+  try {
+    return await loadMenuFromDb(prisma);
+  } catch {
+    return { categories: [], items: [], source: "database" as const };
+  }
 }
