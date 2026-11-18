@@ -60,9 +60,13 @@ async function seedSuperAdmin() {
     return;
   }
   if (password.length < 10) throw new Error("SEED_ADMIN_PASSWORD must be at least 10 characters");
-  const existing = await db.user.findFirst({ where: { email } });
-  const user = existing ?? await db.user.create({
-    data: { email, fullName: "Super Administrator", kind: "STAFF", passwordHash: await argon2Hasher.hash(password) },
+  // Idempotent: every run sets the admin's password and STAFF kind to the values in .env,
+  // so re-running the seed fixes an account created earlier with a different password.
+  const passwordHash = await argon2Hasher.hash(password);
+  const user = await db.user.upsert({
+    where: { email },
+    update: { kind: "STAFF", status: "ACTIVE", deletedAt: null, passwordHash },
+    create: { email, fullName: "Super Administrator", kind: "STAFF", status: "ACTIVE", passwordHash },
   });
   const role = await db.role.findUniqueOrThrow({ where: { key: "super_admin" } });
   await db.userRole.upsert({
