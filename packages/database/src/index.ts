@@ -5,3 +5,4 @@ export * from "./stores/orders";
 export * from "./stores/payments";
 export { PrismaClient, Prisma } from "@prisma/client";
 export type * from "@prisma/client";
+export * from "./stores/table-orders";

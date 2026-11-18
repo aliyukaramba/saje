@@ -25,7 +25,7 @@ export interface PickupOrderInput {
   now: Date;
 }
 
-async function loadCatalog(db: PrismaClient, productIds: string[]): Promise<Map<string, CatalogProduct>> {
+export async function loadCatalog(db: PrismaClient, productIds: string[]): Promise<Map<string, CatalogProduct>> {
   const rows = await db.product.findMany({
     where: { id: { in: productIds }, deletedAt: null },
     include: { variants: true, modifierGroups: { include: { modifiers: true } } },
