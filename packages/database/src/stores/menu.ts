@@ -12,6 +12,8 @@ export interface MenuItemView {
   discountPrice: string | null;
   isFeatured: boolean;
   isAvailable: boolean;
+  /** True when the product has variants or modifiers; these need the options screen (not built yet). */
+  hasOptions: boolean;
 }
 
 export interface MenuData {
@@ -30,7 +32,7 @@ export async function loadMenuFromDb(db: PrismaClient): Promise<MenuData> {
   const products = await db.product.findMany({
     where: { deletedAt: null, category: { isActive: true, deletedAt: null } },
     orderBy: [{ isFeatured: "desc" }, { sortOrder: "asc" }, { name: "asc" }],
-    include: { category: { select: { name: true } } },
+    include: { category: { select: { name: true } }, variants: { select: { id: true } }, modifierGroups: { select: { id: true } } },
   });
   return {
     categories,
@@ -46,6 +48,7 @@ export async function loadMenuFromDb(db: PrismaClient): Promise<MenuData> {
       discountPrice: p.discountPrice ? formatMinor(parseMajorToMinor(p.discountPrice.toString()), p.currency) : null,
       isFeatured: p.isFeatured,
       isAvailable: p.isAvailable,
+      hasOptions: p.variants.length > 0 || p.modifierGroups.length > 0,
     })),
   };
 }
