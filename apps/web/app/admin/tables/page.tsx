@@ -52,10 +52,13 @@ export default async function TablesPage({ searchParams }: { searchParams: Promi
         {tables.map((t) => (
           <li key={t.id} className="card" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
             <div><strong>Table {t.number}</strong>{t.name ? <span className="muted"> · {t.name}</span> : null}</div>
-            <form action={issueTableLink}>
-              <input type="hidden" name="tableId" value={t.id} />
-              <button className="pill" type="submit">New QR link</button>
-            </form>
+            <div style={{ display: "flex", gap: 8 }}>
+              <Link className="pill" href={`/admin/tables/${t.id}`}>Bill</Link>
+              <form action={issueTableLink}>
+                <input type="hidden" name="tableId" value={t.id} />
+                <button className="pill" type="submit">New QR link</button>
+              </form>
+            </div>
           </li>
         ))}
       </ul>
