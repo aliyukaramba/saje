@@ -2,6 +2,13 @@
 // from the master spec so later phases add behaviour, not tables.
 // Money: Decimal(12,2). Currency is stored per row. Soft deletes via deletedAt.
 
+// CHECK constraints (not expressible in this schema) are added by migrations/0001_checks.sql:
+//   Product.basePrice >= 0; ModifierGroup min/max; Order.total >= 0; OrderItem.quantity > 0;
+//   Payment.amount > 0; Refund.amount > 0; Reservation partySize > 0 and endsAt > startsAt;
+//   CustomerReview.rating BETWEEN 1 AND 5.
+// Partial unique indexes (one ACTIVE QrToken per table, one non-CLOSED TableSession per table)
+// and the reservation overlap exclusion constraint are also added by migration SQL.
+
 generator client {
   provider = "prisma-client-js"
 }
@@ -13,11 +20,29 @@ datasource db {
 
 // ---------- Enums ----------
 
-enum AccountKind { STAFF CUSTOMER GUEST }
-enum AccountStatus { ACTIVE SUSPENDED }
+enum AccountKind {
+  STAFF
+  CUSTOMER
+  GUEST
+}
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+}
 
-enum OrderChannel { WEBSITE MOBILE_ANDROID MOBILE_IOS QR_TABLE POS }
-enum OrderType { DINE_IN DELIVERY PICKUP WALK_IN_POS }
+enum OrderChannel {
+  WEBSITE
+  MOBILE_ANDROID
+  MOBILE_IOS
+  QR_TABLE
+  POS
+}
+enum OrderType {
+  DINE_IN
+  DELIVERY
+  PICKUP
+  WALK_IN_POS
+}
 enum OrderStatus {
   PENDING
   CONFIRMED
@@ -28,26 +53,95 @@ enum OrderStatus {
   COMPLETED
   CANCELLED
 }
-enum PaymentStatus { UNPAID PENDING PARTIALLY_PAID PAID FAILED REFUNDED PARTIALLY_REFUNDED }
+enum PaymentStatus {
+  UNPAID
+  PENDING
+  PARTIALLY_PAID
+  PAID
+  FAILED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
 
-enum PaymentMethod { TOPIFY CASH BANK_TRANSFER POS_TERMINAL }
-enum PaymentRecordStatus { PENDING SUCCESSFUL FAILED CANCELLED REFUNDED PARTIALLY_REFUNDED }
-enum BankTransferState { AWAITING_PROOF PROOF_SUBMITTED VERIFIED REJECTED }
+enum PaymentMethod {
+  TOPIFY
+  CASH
+  BANK_TRANSFER
+  POS_TERMINAL
+}
+enum PaymentRecordStatus {
+  PENDING
+  SUCCESSFUL
+  FAILED
+  CANCELLED
+  REFUNDED
+  PARTIALLY_REFUNDED
+}
+enum BankTransferState {
+  AWAITING_PROOF
+  PROOF_SUBMITTED
+  VERIFIED
+  REJECTED
+}
 
-enum TableSessionStatus { OPEN BILL_REQUESTED CLOSED }
-enum QrTokenStatus { ACTIVE REVOKED }
+enum TableSessionStatus {
+  OPEN
+  BILL_REQUESTED
+  CLOSED
+}
+enum QrTokenStatus {
+  ACTIVE
+  REVOKED
+}
 
-enum DeliveryStatus { PENDING ACCEPTED PREPARING READY_FOR_DISPATCH ASSIGNED PICKED_UP DELIVERED FAILED CANCELLED }
+enum DeliveryStatus {
+  PENDING
+  ACCEPTED
+  PREPARING
+  READY_FOR_DISPATCH
+  ASSIGNED
+  PICKED_UP
+  DELIVERED
+  FAILED
+  CANCELLED
+}
 
-enum StockMovementType { PURCHASE ADJUSTMENT DEDUCTION WASTAGE REVERSAL }
+enum StockMovementType {
+  PURCHASE
+  ADJUSTMENT
+  DEDUCTION
+  WASTAGE
+  REVERSAL
+}
 
-enum ReservationStatus { PENDING CONFIRMED REJECTED CANCELLED SEATED COMPLETED NO_SHOW }
+enum ReservationStatus {
+  PENDING
+  CONFIRMED
+  REJECTED
+  CANCELLED
+  SEATED
+  COMPLETED
+  NO_SHOW
+}
 
-enum ReviewStatus { PENDING PUBLISHED HIDDEN }
+enum ReviewStatus {
+  PENDING
+  PUBLISHED
+  HIDDEN
+}
 
-enum NotificationChannel { IN_APP EMAIL PUSH SMS }
+enum NotificationChannel {
+  IN_APP
+  EMAIL
+  PUSH
+  SMS
+}
 
-enum PromotionKind { PERCENT_OFF AMOUNT_OFF FREE_DELIVERY }
+enum PromotionKind {
+  PERCENT_OFF
+  AMOUNT_OFF
+  FREE_DELIVERY
+}
 
 // ---------- Identity & access ----------
 
@@ -198,7 +292,6 @@ model Product {
 
   @@index([categoryId, isAvailable])
   @@index([isFeatured])
-  @@check(basePrice >= 0)
 }
 
 model ProductVariant {
@@ -224,7 +317,6 @@ model ModifierGroup {
   product    Product    @relation(fields: [productId], references: [id], onDelete: Cascade)
   modifiers  Modifier[]
 
-  @@check(minSelect >= 0 AND maxSelect >= minSelect)
 }
 
 model Modifier {
@@ -377,7 +469,6 @@ model Order {
   @@index([channel, placedAt])
   @@index([tableSessionId])
   @@index([customerId, placedAt])
-  @@check(total >= 0)
 }
 
 model OrderItem {
@@ -398,7 +489,6 @@ model OrderItem {
   modifiers    OrderItemModifier[]
 
   @@index([orderId])
-  @@check(quantity > 0)
 }
 
 model OrderItemModifier {
@@ -450,7 +540,6 @@ model Payment {
 
   @@index([orderId])
   @@index([method, status])
-  @@check(amount > 0)
 }
 
 model PaymentEvent {
@@ -490,7 +579,6 @@ model Refund {
   createdAt   DateTime @default(now())
   payment     Payment  @relation(fields: [paymentId], references: [id], onDelete: Cascade)
 
-  @@check(amount > 0)
 }
 
 model WebhookEvent {
@@ -602,7 +690,6 @@ model Reservation {
   @@index([startsAt, status])
   // Migration adds an exclusion constraint on (tableId, tstzrange(startsAt, endsAt))
   // for active statuses, so one table cannot be double-booked.
-  @@check(partySize > 0 AND endsAt > startsAt)
 }
 
 model CustomerReview {
@@ -617,7 +704,6 @@ model CustomerReview {
   user      User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
   product   Product?     @relation(fields: [productId], references: [id], onDelete: SetNull)
 
-  @@check(rating >= 1 AND rating <= 5)
   @@index([productId, status])
 }
 
