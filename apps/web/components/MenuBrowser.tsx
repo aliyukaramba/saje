@@ -1,9 +1,9 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import type { MenuData, MenuItemView } from "../lib/catalog-source";
+import type { WebMenuData, MenuItemView } from "../lib/catalog-source";
 
-export function MenuBrowser({ menu }: { menu: MenuData }) {
+export function MenuBrowser({ menu }: { menu: WebMenuData }) {
   const [query, setQuery] = useState("");
   const [categoryId, setCategoryId] = useState<string | "all">("all");
 
