@@ -98,6 +98,9 @@ export function PosRegister({ items }: { items: PosItem[] }) {
         </ul>
       ) : null}
 
+      <label>Cash received (optional, for change) <input name="cashReceived" inputMode="decimal" placeholder="e.g. 5000" /></label>
+      <p className="muted">Leave blank if the customer paid the exact amount.</p>
+
       <button className="btn-primary" type="submit" disabled={count === 0}>
         {count === 0 ? "Choose items" : `Take cash for ${count} item${count === 1 ? "" : "s"} and send to kitchen`}
       </button>

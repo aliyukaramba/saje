@@ -1,5 +1,5 @@
 import type { PrismaClient } from "@prisma/client";
-import { priceCart, type CartLineInput } from "@restaurant/shared";
+import { priceCart, formatMinor, type CartLineInput, type Minor } from "@restaurant/shared";
 import { loadCatalog, minorToDecimal, OrderInputError, modifierSnapshots } from "./orders";
 
 /**
@@ -8,7 +8,7 @@ import { loadCatalog, minorToDecimal, OrderInputError, modifierSnapshots } from 
  */
 export async function createPosOrder(
   db: PrismaClient,
-  input: { lines: CartLineInput[]; customerName: string | null; staffEmail: string; now: Date },
+  input: { lines: CartLineInput[]; customerName: string | null; staffEmail: string; now: Date; cashTendered: Minor | null },
 ) {
   const settings = await db.restaurantSettings.findUnique({ where: { id: "singleton" } });
   if (!settings) throw new OrderInputError("Restaurant settings are not configured");
@@ -27,8 +27,14 @@ export async function createPosOrder(
     throw new OrderInputError(e instanceof Error ? e.message : "Invalid sale");
   }
 
-  const orderNumber = `SJ-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
   const { totals } = priced;
+  // Cash given must cover the priced total. Checked before anything is saved.
+  if (input.cashTendered !== null && input.cashTendered < totals.total) {
+    throw new OrderInputError(`Cash received is less than the total of ${formatMinor(totals.total)}`);
+  }
+  const change: Minor | null = input.cashTendered !== null ? input.cashTendered - totals.total : null;
+
+  const orderNumber = `SJ-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
 
   await db.$transaction(async (tx) => {
     await tx.order.create({
@@ -80,5 +86,5 @@ export async function createPosOrder(
     data: { paymentId: payment.id, fromStatus: null, toStatus: "SUCCESSFUL", source: `staff:${input.staffEmail}` },
   });
 
-  return { orderNumber, total: totals.total };
+  return { orderNumber, total: totals.total, change };
 }

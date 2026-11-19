@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma, createPosOrder, OrderInputError } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
+import { parseMajorToMinor, formatMinor, type Minor } from "@restaurant/shared";
 
 function fail(message: string): never {
   redirect(`/admin/pos?error=${encodeURIComponent(message)}`);
@@ -31,6 +32,18 @@ export async function chargePosOrder(formData: FormData) {
   }
   const customerName = String(formData.get("customerName") ?? "").trim().slice(0, 120) || null;
 
+  // Optional: the cash the customer handed over, in naira. Blank means no change calculation.
+  let cashTendered: Minor | null = null;
+  const cashRaw = String(formData.get("cashReceived") ?? "").replace(/,/g, "").trim();
+  if (cashRaw) {
+    try {
+      cashTendered = parseMajorToMinor(cashRaw);
+    } catch {
+      fail("Enter the cash received as a number, for example 5000");
+    }
+    if (cashTendered <= 0n) fail("Enter the cash received as a number, for example 5000");
+  }
+
   let result;
   try {
     result = await createPosOrder(prisma, {
@@ -38,6 +51,7 @@ export async function chargePosOrder(formData: FormData) {
       customerName,
       staffEmail: staff.user.email,
       now: new Date(),
+      cashTendered,
     });
   } catch (e) {
     if (e instanceof OrderInputError) fail(e.message);
@@ -46,5 +60,6 @@ export async function chargePosOrder(formData: FormData) {
   }
   revalidatePath("/admin/orders");
   revalidatePath("/admin/kitchen");
-  redirect(`/admin/pos?done=${encodeURIComponent(result.orderNumber)}`);
+  const changeParam = result.change !== null ? `&change=${encodeURIComponent(formatMinor(result.change as Minor))}` : "";
+  redirect(`/admin/pos?done=${encodeURIComponent(result.orderNumber)}${changeParam}`);
 }
