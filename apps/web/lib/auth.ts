@@ -41,7 +41,7 @@ export async function currentStaff() {
   if (!user || user.kind !== "STAFF" || user.status !== "ACTIVE" || user.deletedAt) return null;
   return {
     sessionId: resolved.sessionId,
-    user: { id: user.id, fullName: user.fullName, email: user.email },
+    user: { id: user.id, fullName: user.fullName, email: user.email ?? user.id },
     roles: user.roles.map((r) => r.role.name),
     roleKeys: user.roles.map((r) => r.role.key) as RoleKey[],
   };
