@@ -11,9 +11,9 @@ export default function Home() {
             <span>.</span>
           </div>
           <nav className="nav" aria-label="Ordering options">
-            <span className="pill is-active" aria-current="page">Delivery</span>
-            <span className="pill">Pickup</span>
-            <span className="pill">Dine-in</span>
+            <span className="pill" aria-disabled="true" title="Delivery is not available yet">Delivery</span>
+            <a className="pill is-active" href="/menu">Pickup</a>
+            <span className="pill" aria-disabled="true" title="Scan the code on your table to order">Dine-in</span>
           </nav>
         </header>
 
