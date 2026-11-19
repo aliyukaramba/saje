@@ -28,7 +28,7 @@ export default function Home() {
               Every order goes straight to the kitchen.
             </p>
             <div className="cta-row">
-              <a className="btn-primary" href="#menu">View menu</a>
+              <a className="btn-primary" href="/menu">View menu</a>
             </div>
           </div>
 
