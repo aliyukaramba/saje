@@ -12,6 +12,7 @@ const SECTIONS: { href: string; label: string; permission: Permission }[] = [
   { href: "/admin/dispatch", label: "Dispatch", permission: "delivery:assign" },
   { href: "/admin/driver", label: "My deliveries", permission: "delivery:update_own" },
   { href: "/admin/delivery", label: "Delivery", permission: "settings:manage" },
+  { href: "/admin/inventory", label: "Inventory", permission: "inventory:manage" },
   { href: "/admin/staff", label: "Staff", permission: "staff:manage" },
 ];
 

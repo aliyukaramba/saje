@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { prisma } from "@restaurant/database";
+import { prisma, deductForOrder } from "@restaurant/database";
 import { ORDER_STATUSES, canTransition, type OrderStatus } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
 
@@ -37,7 +37,10 @@ export async function advanceOrder(formData: FormData) {
   await prisma.orderStatusHistory.create({
     data: { orderId: id, fromStatus: order.status, toStatus: to, note: `Set by ${staff.user.email}` },
   });
+  // Kitchen accepted the order: take the recipe ingredients from stock (idempotent).
+  if (to === "ACCEPTED") await deductForOrder(prisma, id);
   revalidatePath("/admin/orders");
   revalidatePath("/admin/kitchen");
+  revalidatePath("/admin/inventory");
   redirect(new URL(String(formData.get("back") ?? "/admin/orders"), "http://x").pathname);
 }
