@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import type { WebMenuData, MenuItemView } from "../lib/catalog-source";
 import { AddToCart } from "./AddToCart";
 import { OptionsPicker } from "./OptionsPicker";
+import { Icon } from "./Icon";
 
 export function MenuBrowser({ menu }: { menu: WebMenuData }) {
   const [query, setQuery] = useState("");
@@ -65,7 +66,11 @@ export function MenuBrowser({ menu }: { menu: WebMenuData }) {
         <ul className="product-grid">
           {visible.map((item) => (
             <li key={item.id} className="card product">
-              {item.imageUrl ? <img className="dish-img" src={item.imageUrl} alt="" loading="lazy" /> : null}
+              {item.imageUrl ? (
+                <img className="dish-img" src={item.imageUrl} alt="" loading="lazy" />
+              ) : (
+                <div className="dish-img dish-placeholder" aria-hidden="true"><Icon name="image" size={28} /></div>
+              )}
               <h3>{item.name}</h3>
               {item.description ? <p>{item.description}</p> : null}
               <div className="price-row">

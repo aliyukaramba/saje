@@ -512,3 +512,29 @@ body::after {
   body { background: #fff !important; }
   .receipt { box-shadow: none; max-width: 80mm; border-radius: 0; padding: 0; }
 }
+
+/* ---------- Cards, placeholders and phone sizing ---------- */
+/* Cards in a row line up: the button or options sit at the bottom of every card */
+.product { display: flex; flex-direction: column; }
+.product > :last-child { margin-top: auto; }
+.dish-placeholder { display: grid; place-items: center; color: var(--muted); }
+
+@media (max-width: 639px) {
+  /* Two dishes per row on phones */
+  .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+  .product { padding: 12px; }
+  .product h3 { font-size: 15px; line-height: 1.25; }
+  .product p { font-size: 13px; margin-bottom: 8px; }
+  .product .price { font-size: 14px; }
+  .dish-img { aspect-ratio: 1 / 1; border-radius: 12px; margin-bottom: 10px; }
+  .product .btn-add { width: 100%; padding: 8px 10px; font-size: 13px; min-height: 36px; margin-top: 8px; }
+  .product .options-panel .btn-add { font-size: 14px; }
+
+  /* Smaller, comfortable buttons on phones */
+  .pill { min-height: 34px; padding: 6px 12px; font-size: 13px; }
+  .btn-primary, .btn-add { min-height: 40px; padding: 9px 14px; font-size: 14px; }
+  .seg { min-height: 34px; padding: 6px 12px; font-size: 13px; }
+  .qty button { width: 36px; height: 36px; font-size: 16px; }
+  .cta-row .btn-primary, .cta-row .pill { padding: 10px 14px; }
+  .cart-line .qty button { width: 34px; height: 34px; }
+}

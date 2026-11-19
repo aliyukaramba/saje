@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { readCart, writeCart, CART_EVENT, type CartLine } from "../lib/cart";
+import { Icon } from "./Icon";
 
 const MIN_LEAD_MINUTES = 20;
 
@@ -126,10 +127,10 @@ export function CartView({ options }: { options: FulfilmentOptions }) {
         {!hasOptions ? <p className="form-error">Ordering is paused right now. Please check back soon.</p> : null}
         <div role="radiogroup" aria-label="Pickup or delivery" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {options.pickupEnabled ? (
-            <button type="button" className="pill" aria-pressed={type === "PICKUP"} onClick={() => setType("PICKUP")}>Pickup</button>
+            <button type="button" className="pill" aria-pressed={type === "PICKUP"} onClick={() => setType("PICKUP")}><Icon name="pickup" size={16} /> Pickup</button>
           ) : null}
           {options.deliveryEnabled ? (
-            <button type="button" className="pill" aria-pressed={type === "DELIVERY"} onClick={() => setType("DELIVERY")}>Delivery</button>
+            <button type="button" className="pill" aria-pressed={type === "DELIVERY"} onClick={() => setType("DELIVERY")}><Icon name="delivery" size={16} /> Delivery</button>
           ) : null}
         </div>
 
