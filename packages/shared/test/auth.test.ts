@@ -1,7 +1,7 @@
 import { describe, it, expect } from "vitest";
 import { AuthService, AuthError, type AccountRecord, type SessionRecord, type PasswordHasher } from "../src/auth/service";
 import { hashToken, generateSessionToken } from "../src/auth/tokens";
-import { argon2Hasher, ARGON2_PARAMS } from "../src/auth/argon2";
+import { passwordHasher } from "../src/auth/password";
 
 function memoryStores() {
   const accounts = new Map<string, AccountRecord>();
@@ -113,12 +113,12 @@ describe("AuthService", () => {
   });
 });
 
-describe("argon2id adapter", () => {
-  it("uses the OWASP minimum Argon2id parameters and round-trips a password", async () => {
-    expect(ARGON2_PARAMS.memorySize).toBe(19456);
-    const h = await argon2Hasher.hash("correct horse battery");
-    expect(h.startsWith("$argon2id$")).toBe(true);
-    expect(await argon2Hasher.verify(h, "correct horse battery")).toBe(true);
-    expect(await argon2Hasher.verify(h, "wrong")).toBe(false);
+describe("password adapter", () => {
+  it("round-trips a password with PBKDF2-SHA256", async () => {
+    const h = await passwordHasher.hash("correct horse battery");
+    expect(h.startsWith("pbkdf2_sha256$")).toBe(true);
+    expect(await passwordHasher.verify(h, "correct horse battery")).toBe(true);
+    expect(await passwordHasher.verify(h, "wrong")).toBe(false);
   });
+});
 });

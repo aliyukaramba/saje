@@ -4,7 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@restaurant/database";
-import { ROLE_KEYS, argon2Hasher, type RoleKey } from "@restaurant/shared";
+import { ROLE_KEYS, passwordHasher, type RoleKey } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
 
 function fail(message: string): never {
@@ -44,7 +44,7 @@ export async function createStaff(formData: FormData) {
       fullName: parsed.data.fullName,
       kind: "STAFF",
       status: "ACTIVE",
-      passwordHash: await argon2Hasher.hash(parsed.data.password),
+      passwordHash: await passwordHasher.hash(parsed.data.password),
     },
   });
   await prisma.userRole.createMany({ data: roleRows.map((r) => ({ userId: user.id, roleId: r.id })) });

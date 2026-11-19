@@ -1,7 +1,7 @@
 // TEMPORARY diagnostic: database host, counts, admin row status (no secrets) and a hashing self-test. Remove after debugging.
 import { NextResponse } from "next/server";
 import { prisma } from "@restaurant/database";
-import { argon2Hasher } from "@restaurant/shared";
+import { passwordHasher } from "@restaurant/shared";
 
 export const dynamic = "force-dynamic";
 
@@ -16,9 +16,9 @@ export async function GET() {
 
   let hashSelfTest: string;
   try {
-    const h = await argon2Hasher.hash("self-test-password");
-    const ok = await argon2Hasher.verify(h, "self-test-password");
-    const bad = await argon2Hasher.verify(h, "wrong-password");
+    const h = await passwordHasher.hash("self-test-password");
+    const ok = await passwordHasher.verify(h, "self-test-password");
+    const bad = await passwordHasher.verify(h, "wrong-password");
     hashSelfTest = ok && !bad ? "pass" : `fail (correct=${ok}, wrong=${bad})`;
   } catch (e) {
     hashSelfTest = `throws: ${e instanceof Error ? e.message : "unknown"}`;

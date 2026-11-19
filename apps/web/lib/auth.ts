@@ -1,13 +1,13 @@
 // Server-side auth for the website and admin area. Session tokens live in an httpOnly cookie.
 import { cookies } from "next/headers";
 import { prisma, createAccountStore, createSessionStore } from "@restaurant/database";
-import { AuthService, argon2Hasher, canAny, type Permission, type RoleKey } from "@restaurant/shared";
+import { AuthService, passwordHasher, canAny, type Permission, type RoleKey } from "@restaurant/shared";
 
 export const SESSION_COOKIE = "saje_session";
 
 export function getAuthService(): AuthService {
   return new AuthService({
-    hasher: argon2Hasher,
+    hasher: passwordHasher,
     accounts: createAccountStore(prisma),
     sessions: createSessionStore(prisma),
   });

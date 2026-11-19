@@ -8,7 +8,7 @@ import { config } from "dotenv";
 config({ path: path.resolve(__dirname, "../.env") });
 
 import { PrismaClient } from "@prisma/client";
-import { PERMISSIONS, ROLE_KEYS, ROLE_PERMISSIONS, argon2Hasher } from "@restaurant/shared";
+import { PERMISSIONS, ROLE_KEYS, ROLE_PERMISSIONS, passwordHasher } from "@restaurant/shared";
 
 const db = new PrismaClient();
 
@@ -62,7 +62,7 @@ async function seedSuperAdmin() {
   if (password.length < 10) throw new Error("SEED_ADMIN_PASSWORD must be at least 10 characters");
   // Idempotent: every run sets the admin's password and STAFF kind to the values in .env,
   // so re-running the seed fixes an account created earlier with a different password.
-  const passwordHash = await argon2Hasher.hash(password);
+  const passwordHash = await passwordHasher.hash(password);
   const user = await db.user.upsert({
     where: { email },
     update: { kind: "STAFF", status: "ACTIVE", deletedAt: null, passwordHash },

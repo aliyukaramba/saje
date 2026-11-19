@@ -11,14 +11,14 @@ describe.skipIf(!enabled)("database integration (Neon dev branch)", () => {
   // Loaded lazily so the test file can be collected even when the Prisma client is not generated.
   let prisma: PrismaClient;
   let AuthService: typeof import("@restaurant/shared").AuthService;
-  let argon2Hasher: typeof import("@restaurant/shared").argon2Hasher;
+  let passwordHasher: typeof import("@restaurant/shared").passwordHasher;
   let createAccountStore: typeof import("../src/stores/auth").createAccountStore;
   let createSessionStore: typeof import("../src/stores/auth").createSessionStore;
 
   beforeAll(async () => {
     ({ prisma } = await import("../src/client"));
     ({ createAccountStore, createSessionStore } = await import("../src/stores/auth"));
-    ({ AuthService, argon2Hasher } = await import("@restaurant/shared"));
+    ({ AuthService, passwordHasher } = await import("@restaurant/shared"));
     await prisma.$connect();
   });
 
@@ -29,7 +29,7 @@ describe.skipIf(!enabled)("database integration (Neon dev branch)", () => {
 
   it("registers, logs in and resolves a session through the real stores", async () => {
     const auth = new AuthService({
-      hasher: argon2Hasher,
+      hasher: passwordHasher,
       accounts: createAccountStore(prisma),
       sessions: createSessionStore(prisma),
     });
@@ -41,7 +41,7 @@ describe.skipIf(!enabled)("database integration (Neon dev branch)", () => {
   });
 
   it("rejects a second registration with the same email", async () => {
-    const auth = new AuthService({ hasher: argon2Hasher, accounts: createAccountStore(prisma), sessions: createSessionStore(prisma) });
+    const auth = new AuthService({ hasher: passwordHasher, accounts: createAccountStore(prisma), sessions: createSessionStore(prisma) });
     await expect(auth.register({ fullName: "Dup", email, password: "a-long-password-1" }))
       .rejects.toMatchObject({ code: "EMAIL_TAKEN" });
   });
