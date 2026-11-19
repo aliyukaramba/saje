@@ -4,7 +4,7 @@ name: CI
 # It does not deploy: Workers Builds still deploys dev on push.
 on:
   push:
-    branches: [dev, deps-upgrade]
+    branches: [dev, staging, deps-upgrade, remaining-work]
   pull_request:
 
 permissions:

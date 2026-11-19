@@ -531,6 +531,8 @@ model Payment {
   bankTransferState  BankTransferState?
   proofUrl           String?
   terminalInfo       String?             // POS terminal ID / receipt number, recorded by staff
+  cashTendered       Decimal?            @db.Decimal(12, 2) // cash handed over at the counter
+  changeGiven        Decimal?            @db.Decimal(12, 2) // change returned to the customer
   recordedById       String?
   verifiedById       String?
   createdAt          DateTime            @default(now())
