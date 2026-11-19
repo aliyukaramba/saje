@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { prisma, loadMenuFromDb } from "@restaurant/database";
 import { AddToCart } from "../components/AddToCart";
-import { ThemeToggle } from "../components/ThemeToggle";
 import { SiteNav } from "../components/SiteNav";
 
 export const dynamic = "force-dynamic";
@@ -18,7 +17,6 @@ export default async function Home() {
       <header className="topbar">
         <div className="brand">{restaurantName}<span>.</span></div>
         <SiteNav />
-        <ThemeToggle />
       </header>
 
       <section className="home-hero">

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CartBadge } from "./CartBadge";
+import { ThemeToggle } from "./ThemeToggle";
 
 // Icon-only navigation for the customer top bar. Each icon keeps a text label for screen readers and a tooltip.
 const stroke = { fill: "none", stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round" as const, strokeLinejoin: "round" as const };
@@ -20,6 +21,7 @@ export function SiteNav() {
         </svg>
         <CartBadge />
       </Link>
+      <ThemeToggle />
       <Link className="icon-link" href="/menu" aria-label="Menu" title="Menu">
         <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true" {...stroke}>
           <path d="M4 6h16M4 12h16M4 18h10" />
