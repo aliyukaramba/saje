@@ -389,3 +389,18 @@ body::after {
   .topbar .nav { gap: 4px; }
   .topbar .nav .pill { padding: 6px 10px; font-size: 13px; }
 }
+
+/* Admin dashboard fixes: keep wide content inside its column, size big figures to fit, one scrolling row of links on phones */
+.admin-main, .admin-layout > main { min-width: 0; }
+@media (min-width: 900px) {
+  .admin-layout { grid-template-columns: 220px minmax(0, 1fr); }
+}
+.card .big { font-size: clamp(24px, 3vw, 34px); overflow-wrap: anywhere; line-height: 1.15; }
+.stat-grid > .card { min-width: 0; }
+.recent-list li > div { min-width: 0; }
+@media (max-width: 899px) {
+  .admin-side { flex-wrap: wrap; }
+  .admin-links { flex-wrap: nowrap; overflow-x: auto; width: 100%; padding-bottom: 4px; scrollbar-width: none; }
+  .admin-links::-webkit-scrollbar { display: none; }
+  .admin-link { white-space: nowrap; flex: 0 0 auto; }
+}
