@@ -62,6 +62,7 @@ export default async function Home() {
           <ul className="product-grid">
             {featured.map((item) => (
               <li key={item.id} className="card product">
+                {item.imageUrl ? <img className="dish-img" src={item.imageUrl} alt="" loading="lazy" /> : null}
                 <h3>{item.name}</h3>
                 {item.description ? <p>{item.description}</p> : null}
                 <div className="price-row">

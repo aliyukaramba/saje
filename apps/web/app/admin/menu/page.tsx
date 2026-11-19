@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { formatMinor, parseMajorToMinor } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
-import { createCategory, createProduct, updateProductAvailability, deleteProduct } from "./actions";
+import { createCategory, createProduct, updateProductAvailability, deleteProduct, uploadProductImage } from "./actions";
 
 export const dynamic = "force-dynamic";
 
@@ -66,6 +66,12 @@ export default async function AdminMenuPage({ searchParams }: { searchParams: Pr
                   <button className="pill" type="submit">Delete</button>
                 </form>
               </div>
+              <form action={uploadProductImage} style={{ display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap" }}>
+                <input type="hidden" name="productId" value={p.id} />
+                {p.imageUrl ? <img src={p.imageUrl} alt="" width={48} height={48} style={{ objectFit: "cover", borderRadius: 12 }} /> : null}
+                <input type="file" name="image" accept="image/jpeg,image/png,image/webp" required aria-label={`Photo for ${p.name}`} />
+                <button className="pill" type="submit">Upload photo</button>
+              </form>
             </li>
           ))}
         </ul>

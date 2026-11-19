@@ -6,6 +6,7 @@ import { z } from "zod";
 import { prisma, minorToDecimal } from "@restaurant/database";
 import { parseMajorToMinor } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
+import { storeMenuImage } from "../../../lib/media";
 
 function slugify(input: string): string {
   const base = input.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "") || "item";
@@ -86,5 +87,26 @@ export async function deleteProduct(formData: FormData) {
   await prisma.product.update({ where: { id }, data: { deletedAt: new Date(), isAvailable: false } });
   revalidatePath("/admin/menu");
   revalidatePath("/menu");
+  redirect("/admin/menu");
+}
+
+export async function uploadProductImage(formData: FormData) {
+  await requireMenuAccess();
+  const id = String(formData.get("productId") ?? "");
+  const file = formData.get("image");
+  if (!id) fail("Missing dish");
+  if (!(file instanceof File) || file.size === 0) fail("Choose a photo to upload");
+  const product = await prisma.product.findUnique({ where: { id } });
+  if (!product) fail("Dish not found");
+  let url: string;
+  try {
+    url = await storeMenuImage(id, file);
+  } catch (e) {
+    fail(e instanceof Error ? e.message : "The photo could not be uploaded");
+  }
+  await prisma.product.update({ where: { id }, data: { imageUrl: url } });
+  revalidatePath("/admin/menu");
+  revalidatePath("/menu");
+  revalidatePath("/");
   redirect("/admin/menu");
 }
