@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { priceCart, validateFulfilment, parseMajorToMinor, type CartLineInput } from "@restaurant/shared";
-import { loadCatalog, minorToDecimal, OrderInputError } from "./orders";
+import { loadCatalog, minorToDecimal, OrderInputError, modifierSnapshots } from "./orders";
 
 export interface DeliveryAddressInput {
   line1: string;
@@ -53,9 +53,6 @@ export async function createDeliveryOrder(
   for (const line of input.lines) {
     const product = catalog.get(line.productId);
     if (!product) throw new OrderInputError("An item on your order is no longer available");
-    if (product.variants.length > 0 || product.modifierGroups.length > 0) {
-      throw new OrderInputError("Items with options cannot be ordered for delivery yet");
-    }
   }
 
   const taxRateBps = settings.taxRate ? Math.round(Number(settings.taxRate.toString()) * 10000) : 0;
@@ -123,6 +120,7 @@ export async function createDeliveryOrder(
             unitPrice: minorToDecimal(l.unitPrice),
             quantity: l.quantity,
             lineTotal: minorToDecimal(l.lineTotal),
+            modifiers: { create: modifierSnapshots(catalog, l.modifierIds) },
           })),
         },
         statusHistory: { create: { fromStatus: null, toStatus: "PENDING", note: "Delivery order placed" } },

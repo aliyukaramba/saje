@@ -12,8 +12,8 @@ export default async function PosPage({ searchParams }: { searchParams: Promise<
   const menu = await loadMenuFromDb(prisma);
   const categoryName = new Map(menu.categories.map((c) => [c.id, c.name]));
   const items: PosItem[] = menu.items
-    .filter((i) => i.isAvailable && !i.hasOptions)
-    .map((i) => ({ id: i.id, name: i.name, price: i.discountPrice ?? i.price, categoryName: categoryName.get(i.categoryId) ?? "" }));
+    .filter((i) => i.isAvailable)
+    .map((i) => ({ id: i.id, name: i.name, price: i.discountPrice ?? i.price, categoryName: categoryName.get(i.categoryId) ?? "", options: i.options }));
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>

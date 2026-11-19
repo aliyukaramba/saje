@@ -9,6 +9,8 @@ const schema = z.object({
   lines: z.array(z.object({
     productId: z.string().min(1).max(64),
     quantity: z.number().int().min(1).max(99),
+    variantId: z.string().max(64).optional(),
+    modifierIds: z.array(z.string().max(64)).max(20).default([]),
   })).min(1).max(50),
 });
 
@@ -18,7 +20,7 @@ export async function POST(req: Request) {
   try {
     const result = await createTableOrder(prisma, {
       rawToken: parsed.data.token,
-      lines: parsed.data.lines.map((l) => ({ ...l, modifierIds: [] })),
+      lines: parsed.data.lines,
       now: new Date(),
     });
     return NextResponse.json(result);

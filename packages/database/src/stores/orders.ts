@@ -18,6 +18,18 @@ export class OrderInputError extends Error {
   }
 }
 
+/** Builds the modifier snapshot rows for an order item, so the receipt keeps names and prices as sold. */
+export function modifierSnapshots(catalog: Map<string, CatalogProduct>, modifierIds: string[]) {
+  const info = new Map<string, { name: string; priceDelta: Minor }>();
+  for (const p of catalog.values()) {
+    for (const g of p.modifierGroups) for (const m of g.modifiers) info.set(m.id, { name: m.name, priceDelta: m.priceDelta });
+  }
+  return modifierIds.map((id) => {
+    const i = info.get(id);
+    return { modifierId: id, nameSnapshot: i?.name ?? "Option", priceSnapshot: minorToDecimal(i?.priceDelta ?? 0n) };
+  });
+}
+
 export interface PickupOrderInput {
   lines: CartLineInput[];
   customer: { name: string; phone: string; email: string };

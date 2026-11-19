@@ -4,6 +4,13 @@ import { useMemo, useState } from "react";
 import { formatMinor } from "@restaurant/shared";
 import { addToCart } from "../lib/cart";
 
+export interface OptionChoice {
+  variantId?: string;
+  modifierIds: string[];
+  optionLabel: string;
+  priceLabel: string;
+}
+
 export interface OptionsItem {
   id: string;
   name: string;
@@ -20,7 +27,7 @@ export interface OptionsItem {
 const signed = (delta: bigint) => `${delta > 0n ? "+" : delta < 0n ? "−" : ""}${formatMinor(delta < 0n ? -delta : delta)}`;
 
 /** Size and add-on picker. The browser shows the price; the server recalculates it at checkout. */
-export function OptionsPicker({ item }: { item: OptionsItem }) {
+export function OptionsPicker({ item, onAdd }: { item: OptionsItem; onAdd?: (choice: OptionChoice) => void }) {
   const { options } = item;
   const [open, setOpen] = useState(false);
   const [variantId, setVariantId] = useState(options.variants.find((v) => v.isAvailable)?.id ?? "");
@@ -64,14 +71,14 @@ export function OptionsPicker({ item }: { item: OptionsItem }) {
       variant?.name,
       ...options.groups.flatMap((g) => g.modifiers.filter((m) => (picked[g.id] ?? []).includes(m.id)).map((m) => m.name)),
     ].filter(Boolean);
-    addToCart({
-      id: item.id,
-      name: item.name,
-      price: formatMinor(totalMinor),
+    const choice: OptionChoice = {
       variantId: variant?.id,
       modifierIds,
       optionLabel: names.join(" · "),
-    });
+      priceLabel: formatMinor(totalMinor),
+    };
+    if (onAdd) onAdd(choice);
+    else addToCart({ id: item.id, name: item.name, price: choice.priceLabel, variantId: choice.variantId, modifierIds, optionLabel: choice.optionLabel });
     setAdded(true);
     setTimeout(() => setAdded(false), 1400);
   }

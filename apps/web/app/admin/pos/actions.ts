@@ -14,6 +14,8 @@ const linesSchema = z.object({
   lines: z.array(z.object({
     productId: z.string().min(1).max(64),
     quantity: z.number().int().min(1).max(99),
+    variantId: z.string().max(64).optional(),
+    modifierIds: z.array(z.string().max(64)).max(20).default([]),
   })).min(1).max(50),
 });
 
@@ -32,7 +34,7 @@ export async function chargePosOrder(formData: FormData) {
   let result;
   try {
     result = await createPosOrder(prisma, {
-      lines: lines.map((l) => ({ ...l, modifierIds: [] })),
+      lines,
       customerName,
       staffEmail: staff.user.email,
       now: new Date(),

@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { priceCart, type CartLineInput } from "@restaurant/shared";
-import { loadCatalog, minorToDecimal, OrderInputError } from "./orders";
+import { loadCatalog, minorToDecimal, OrderInputError, modifierSnapshots } from "./orders";
 
 /**
  * Counter sale: priced on the server, paid in cash at the counter, and sent to the kitchen.
@@ -17,9 +17,6 @@ export async function createPosOrder(
   for (const line of input.lines) {
     const product = catalog.get(line.productId);
     if (!product) throw new OrderInputError("An item on this sale is no longer available");
-    if (product.variants.length > 0 || product.modifierGroups.length > 0) {
-      throw new OrderInputError("Items with options cannot be sold at the counter yet");
-    }
   }
 
   const taxRateBps = settings.taxRate ? Math.round(Number(settings.taxRate.toString()) * 10000) : 0;
@@ -57,6 +54,7 @@ export async function createPosOrder(
             unitPrice: minorToDecimal(l.unitPrice),
             quantity: l.quantity,
             lineTotal: minorToDecimal(l.lineTotal),
+            modifiers: { create: modifierSnapshots(catalog, l.modifierIds) },
           })),
         },
         statusHistory: { create: { fromStatus: null, toStatus: "CONFIRMED", note: `Counter sale by ${input.staffEmail}` } },
