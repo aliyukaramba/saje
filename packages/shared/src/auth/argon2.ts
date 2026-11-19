@@ -14,7 +14,9 @@ export const argon2Hasher: PasswordHasher = {
   async verify(stored, password) {
     try {
       return await argon2Verify({ password, hash: stored });
-    } catch {
+    } catch (e) {
+      // A malformed stored hash or a runtime failure is logged, not silently treated as a wrong password.
+      console.error("argon2 verify failed", e);
       return false;
     }
   },

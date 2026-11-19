@@ -15,6 +15,7 @@ export async function loginAction(formData: FormData) {
     const ttl = 30 * 24 * 60 * 60 * 1000;
     await setSessionCookie(result.token, new Date(Date.now() + ttl));
   } catch (e) {
+    if (!(e instanceof AuthError)) console.error("staff login failed", e);
     const code = e instanceof AuthError ? e.code : "UNKNOWN";
     redirect(`/admin/login?error=${encodeURIComponent(code)}`);
   }
