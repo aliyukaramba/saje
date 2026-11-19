@@ -10,6 +10,8 @@ export interface OrderCardData {
   scheduledFor: string | null;
   total: string;
   items: { quantity: number; nameSnapshot: string }[];
+  type?: string;
+  notes?: string | null;
 }
 
 export function OrderCard({ order, canCancel, back }: { order: OrderCardData; canCancel: boolean; back: string }) {
@@ -27,6 +29,7 @@ export function OrderCard({ order, canCancel, back }: { order: OrderCardData; ca
       <ul style={{ margin: 0, paddingLeft: 18 }}>
         {order.items.map((i, idx) => <li key={idx}>{i.quantity} × {i.nameSnapshot}</li>)}
       </ul>
+      {order.type === "DELIVERY" && order.notes ? <div style={{ fontWeight: 600 }}>{order.notes}</div> : null}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
         {moves.map((to) => (
           <form key={to} action={advanceOrder}>

@@ -19,5 +19,7 @@ export async function loadOpenOrders(): Promise<OrderCardData[]> {
     scheduledFor: o.scheduledFor ? o.scheduledFor.toISOString() : null,
     total: `₦${Number(o.total.toString()).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`,
     items: o.items,
+    type: o.type,
+    notes: o.specialInstructions,
   }));
 }
