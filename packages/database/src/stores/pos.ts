@@ -2,13 +2,15 @@ import type { PrismaClient } from "@prisma/client";
 import { priceCart, formatMinor, type CartLineInput, type Minor } from "@restaurant/shared";
 import { loadCatalog, minorToDecimal, OrderInputError, modifierSnapshots } from "./orders";
 
+export type CounterPaymentMethod = "CASH" | "POS_TERMINAL" | "BANK_TRANSFER";
+
 /**
  * Counter sale: priced on the server, paid in cash at the counter, and sent to the kitchen.
  * Card and transfer payments at the counter are not supported yet.
  */
 export async function createPosOrder(
   db: PrismaClient,
-  input: { lines: CartLineInput[]; customerName: string | null; staffEmail: string; now: Date; cashTendered: Minor | null },
+  input: { lines: CartLineInput[]; customerName: string | null; staffEmail: string; now: Date; cashTendered: Minor | null; method: CounterPaymentMethod },
 ) {
   const settings = await db.restaurantSettings.findUnique({ where: { id: "singleton" } });
   if (!settings) throw new OrderInputError("Restaurant settings are not configured");
@@ -28,11 +30,12 @@ export async function createPosOrder(
   }
 
   const { totals } = priced;
-  // Cash given must cover the priced total. Checked before anything is saved.
-  if (input.cashTendered !== null && input.cashTendered < totals.total) {
+  // Change is only worked out for cash. Cash given must cover the priced total. Checked before anything is saved.
+  const cash = input.method === "CASH" ? input.cashTendered : null;
+  if (cash !== null && cash < totals.total) {
     throw new OrderInputError(`Cash received is less than the total of ${formatMinor(totals.total)}`);
   }
-  const change: Minor | null = input.cashTendered !== null ? input.cashTendered - totals.total : null;
+  const change: Minor | null = cash !== null ? cash - totals.total : null;
 
   const orderNumber = `SJ-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
 
@@ -74,12 +77,12 @@ export async function createPosOrder(
   const payment = await db.payment.create({
     data: {
       orderId: order.id,
-      method: "CASH",
+      method: input.method,
       status: "SUCCESSFUL",
       amount: minorToDecimal(totals.total),
       currency: "NGN",
-      reference: `CASH-${orderNumber}`,
-      idempotencyKey: `cash-${orderNumber}`,
+      reference: `${input.method}-${orderNumber}`,
+      idempotencyKey: `${input.method.toLowerCase()}-${orderNumber}`,
     },
   });
   await db.paymentEvent.create({

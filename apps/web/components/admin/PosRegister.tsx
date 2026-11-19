@@ -1,6 +1,13 @@
 "use client";
 
 import { useState } from "react";
+
+type Method = "CASH" | "POS_TERMINAL" | "BANK_TRANSFER";
+const METHODS: { value: Method; label: string }[] = [
+  { value: "CASH", label: "Cash" },
+  { value: "POS_TERMINAL", label: "Card terminal" },
+  { value: "BANK_TRANSFER", label: "Bank transfer" },
+];
 import { chargePosOrder } from "../../app/admin/pos/actions";
 import { lineKeyOf } from "../../lib/cart";
 import { OptionsPicker, type OptionChoice, type OptionsItem } from "../OptionsPicker";
@@ -25,6 +32,7 @@ interface Line {
 
 export function PosRegister({ items }: { items: PosItem[] }) {
   const [lines, setLines] = useState<Line[]>([]);
+  const [method, setMethod] = useState<Method>("CASH");
   const count = lines.reduce((s, l) => s + l.quantity, 0);
 
   function addLine(item: { id: string; name: string }, choice: { variantId?: string; modifierIds: string[]; optionLabel: string }) {
@@ -98,8 +106,21 @@ export function PosRegister({ items }: { items: PosItem[] }) {
         </ul>
       ) : null}
 
-      <label>Cash received (optional, for change) <input name="cashReceived" inputMode="decimal" placeholder="e.g. 5000" /></label>
-      <p className="muted">Leave blank if the customer paid the exact amount.</p>
+      <fieldset style={{ border: 0, padding: 0, margin: 0 }}>
+        <legend style={{ fontWeight: 600, marginBottom: 6 }}>How did the customer pay?</legend>
+        {METHODS.map((m) => (
+          <label key={m.value} className="opt-row">
+            <input type="radio" name="paymentMethod" value={m.value} checked={method === m.value} onChange={() => setMethod(m.value)} />
+            <span>{m.label}</span>
+          </label>
+        ))}
+      </fieldset>
+      {method === "CASH" ? (
+        <>
+          <label>Cash received (optional, for change) <input name="cashReceived" inputMode="decimal" placeholder="e.g. 5000" /></label>
+          <p className="muted">Leave blank if the customer paid the exact amount.</p>
+        </>
+      ) : null}
 
       <button className="btn-primary" type="submit" disabled={count === 0}>
         {count === 0 ? "Choose items" : `Take cash for ${count} item${count === 1 ? "" : "s"} and send to kitchen`}

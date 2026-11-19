@@ -32,10 +32,14 @@ export async function chargePosOrder(formData: FormData) {
   }
   const customerName = String(formData.get("customerName") ?? "").trim().slice(0, 120) || null;
 
-  // Optional: the cash the customer handed over, in naira. Blank means no change calculation.
+  const methodRaw = String(formData.get("paymentMethod") ?? "CASH");
+  if (!(["CASH", "POS_TERMINAL", "BANK_TRANSFER"] as string[]).includes(methodRaw)) fail("Choose how the customer paid");
+  const paymentMethod = methodRaw as "CASH" | "POS_TERMINAL" | "BANK_TRANSFER";
+
+  // Optional, cash only: the cash the customer handed over, in naira. Blank means no change calculation.
   let cashTendered: Minor | null = null;
   const cashRaw = String(formData.get("cashReceived") ?? "").replace(/,/g, "").trim();
-  if (cashRaw) {
+  if (paymentMethod === "CASH" && cashRaw) {
     try {
       cashTendered = parseMajorToMinor(cashRaw);
     } catch {
@@ -52,6 +56,7 @@ export async function chargePosOrder(formData: FormData) {
       staffEmail: staff.user.email,
       now: new Date(),
       cashTendered,
+      method: paymentMethod,
     });
   } catch (e) {
     if (e instanceof OrderInputError) fail(e.message);
