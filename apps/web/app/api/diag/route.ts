@@ -52,3 +52,13 @@ export async function GET() {
     return NextResponse.json({ host, hashSelfTest, error: e instanceof Error ? e.message : "unknown" }, { status: 500 });
   }
 }
+
+// TEMPORARY: checks one password against the stored admin hash. Returns only true or false. Remove after debugging.
+export async function POST(req: Request) {
+  const body = (await req.json().catch(() => null)) as { password?: unknown } | null;
+  if (typeof body?.password !== "string") return NextResponse.json({ error: "send { password }" }, { status: 400 });
+  const admin = await prisma.user.findFirst({ where: { email: "karambaaleeyu@gmail.com" }, select: { passwordHash: true } });
+  if (!admin?.passwordHash) return NextResponse.json({ adminFound: false });
+  const match = await passwordHasher.verify(admin.passwordHash, body.password);
+  return NextResponse.json({ adminFound: true, match });
+}
