@@ -404,3 +404,16 @@ body::after {
   .admin-links::-webkit-scrollbar { display: none; }
   .admin-link { white-space: nowrap; flex: 0 0 auto; }
 }
+
+/* Sidebar on desktop: exactly one screen tall, links at the top, theme toggle and sign out pinned to the bottom */
+@media (min-width: 900px) {
+  .admin-side {
+    box-sizing: border-box;
+    flex-wrap: nowrap;
+    height: 100vh;
+    height: 100dvh;
+    overflow-y: auto;
+  }
+  .admin-side .admin-links { flex: 0 0 auto; }
+  .admin-side .admin-foot { margin-top: auto; }
+}
