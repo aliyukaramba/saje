@@ -1,4 +1,4 @@
-import { CartBadge } from "../../components/CartBadge";
+import { SiteNav } from "../../components/SiteNav";
 import { loadMenu } from "../../lib/catalog-source";
 import { MenuBrowser } from "../../components/MenuBrowser";
 
@@ -10,7 +10,7 @@ export default async function MenuPage() {
     <div className="shell">
       <header className="topbar">
         <a className="brand" href="/">{process.env.RESTAURANT_NAME ?? "Restaurant"}<span>.</span></a>
-        <a className="cart-link" href="/cart">Cart <CartBadge /></a>
+        <SiteNav />
       </header>
       <h1 className="page-title"><strong>Our</strong> menu</h1>
       <MenuBrowser menu={menu} />

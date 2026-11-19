@@ -454,3 +454,22 @@ body::after {
   img, video { max-width: 100%; height: auto; }
   body { overflow-x: hidden; }
 }
+
+/* Icon navigation in the capsule navbar */
+.icon-link {
+  position: relative; width: 42px; height: 42px; border-radius: 999px; flex: 0 0 auto;
+  display: inline-grid; place-items: center; color: var(--ink); text-decoration: none;
+  border: 1px solid var(--hairline); background: var(--glass-fill);
+  transition: transform 0.2s var(--ease-out), background-color 0.25s, color 0.25s;
+}
+.icon-link:hover { transform: translateY(-2px); background: var(--surface); }
+.icon-link:active { transform: scale(0.94); }
+.icon-link:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.icon-link svg { transition: transform 0.3s var(--ease-out); }
+.icon-link:hover svg { transform: scale(1.08); }
+.icon-link .cart-badge { position: absolute; top: -5px; right: -5px; margin: 0; min-width: 18px; height: 18px; padding: 0 5px; font-size: 11px; }
+.topbar .nav { gap: 8px; }
+@media (max-width: 560px) {
+  .icon-link { width: 40px; height: 40px; }
+  .topbar .nav { gap: 6px; }
+}

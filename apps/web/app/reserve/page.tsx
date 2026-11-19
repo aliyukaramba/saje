@@ -1,3 +1,4 @@
+import { SiteNav } from "../../components/SiteNav";
 import Link from "next/link";
 import { createReservation } from "./actions";
 
@@ -10,7 +11,7 @@ export default async function ReservePage({ searchParams }: { searchParams: Prom
     <div className="shell">
       <header className="topbar">
         <Link className="brand" href="/">{process.env.RESTAURANT_NAME ?? "Restaurant"}<span>.</span></Link>
-        <Link className="pill" href="/menu">Menu</Link>
+        <SiteNav />
       </header>
       <h1 className="page-title"><strong>Reserve</strong> a table</h1>
       {done ? <p role="status" className="card">Your table is booked. We look forward to seeing you.</p> : null}
