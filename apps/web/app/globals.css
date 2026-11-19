@@ -366,3 +366,26 @@ body::after {
   .admin-foot .theme-toggle { justify-content: center; }
   .admin-foot .admin-signout .pill { width: 100%; text-align: center; }
 }
+
+/* Floating capsule navbar on customer pages. It stays at the top while scrolling. */
+.topbar {
+  position: sticky; top: 12px; z-index: 50;
+  width: max-content; max-width: calc(100% - 8px);
+  margin: 12px auto 18px;
+  padding: 8px 8px 8px 22px;
+  gap: 16px;
+  border-radius: 999px;
+  background: var(--glass-fill);
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: blur(18px) saturate(170%);
+  backdrop-filter: blur(18px) saturate(170%);
+}
+.topbar .nav { align-items: center; flex-wrap: nowrap; }
+.topbar .nav .pill, .topbar .nav .cart-link { white-space: nowrap; }
+@media (max-width: 560px) {
+  .topbar { width: calc(100% - 8px); justify-content: space-between; padding: 6px 6px 6px 16px; }
+  .topbar .brand { font-size: 17px; }
+  .topbar .nav { gap: 4px; }
+  .topbar .nav .pill { padding: 6px 10px; font-size: 13px; }
+}
