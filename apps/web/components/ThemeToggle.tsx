@@ -25,9 +25,11 @@ export function ThemeToggle() {
   }
 
   return (
-    <div className="theme-toggle" role="group" aria-label="Colour theme">
-      <button type="button" className="pill" aria-pressed={mode === "light"} onClick={() => choose("light")}>Light</button>
-      <button type="button" className="pill" aria-pressed={mode === "dark"} onClick={() => choose("dark")}>Dark</button>
+    <div className="theme-toggle">
+      <div className="seg-group" role="group" aria-label="Colour theme">
+        <button type="button" className="seg" aria-pressed={mode === "light"} onClick={() => choose("light")}>Light</button>
+        <button type="button" className="seg" aria-pressed={mode === "dark"} onClick={() => choose("dark")}>Dark</button>
+      </div>
     </div>
   );
 }
