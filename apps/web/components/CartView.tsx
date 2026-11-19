@@ -44,8 +44,8 @@ export function CartView({ options }: { options: FulfilmentOptions }) {
   const hasOptions = options.pickupEnabled || options.deliveryEnabled;
   const selectedZone = options.zones.find((z) => z.id === zoneId);
 
-  function setQty(productId: string, quantity: number) {
-    writeCart(lines!.map((l) => (l.productId === productId ? { ...l, quantity } : l)).filter((l) => l.quantity > 0));
+  function setQty(lineKey: string, quantity: number) {
+    writeCart(lines!.map((l) => (l.lineKey === lineKey ? { ...l, quantity } : l)).filter((l) => l.quantity > 0));
   }
 
   async function checkout(e: React.FormEvent<HTMLFormElement>) {
@@ -76,7 +76,7 @@ export function CartView({ options }: { options: FulfilmentOptions }) {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({
-          lines: lines!.map((l) => ({ productId: l.productId, quantity: l.quantity, modifierIds: [] })),
+          lines: lines!.map((l) => ({ productId: l.productId, quantity: l.quantity, variantId: l.variantId, modifierIds: l.modifierIds })),
           customer: { name, phone, email },
           fulfilment,
         }),
@@ -106,15 +106,16 @@ export function CartView({ options }: { options: FulfilmentOptions }) {
     <div className="cart">
       <ul className="cart-lines">
         {lines.map((l) => (
-          <li key={l.productId} className="card cart-line">
+          <li key={l.lineKey} className="card cart-line">
             <div>
               <strong>{l.name}</strong>
+              {l.optionLabel ? <div className="muted">{l.optionLabel}</div> : null}
               <div className="muted">{l.unitLabel} each</div>
             </div>
             <div className="qty" role="group" aria-label={`Quantity of ${l.name}`}>
-              <button type="button" onClick={() => setQty(l.productId, l.quantity - 1)} aria-label="Decrease">−</button>
+              <button type="button" onClick={() => setQty(l.lineKey, l.quantity - 1)} aria-label="Decrease">−</button>
               <span aria-live="polite">{l.quantity}</span>
-              <button type="button" onClick={() => setQty(l.productId, Math.min(99, l.quantity + 1))} aria-label="Increase">+</button>
+              <button type="button" onClick={() => setQty(l.lineKey, Math.min(99, l.quantity + 1))} aria-label="Increase">+</button>
             </div>
           </li>
         ))}

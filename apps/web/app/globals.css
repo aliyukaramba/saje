@@ -473,3 +473,13 @@ body::after {
   .icon-link { width: 40px; height: 40px; }
   .topbar .nav { gap: 6px; }
 }
+
+/* Options picker (sizes and add-ons) */
+.options-panel { margin-top: 12px; display: grid; gap: 4px; }
+.options-panel fieldset { border: 0; padding: 0; margin: 0 0 10px; min-width: 0; }
+.options-panel legend { font-weight: 700; font-size: 14px; color: var(--ink); margin-bottom: 4px; padding: 0; }
+.opt-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; color: var(--ink); cursor: pointer; flex-wrap: wrap; }
+.opt-row input { width: 18px; height: 18px; accent-color: var(--brand); flex: 0 0 auto; }
+.opt-row input:disabled + span { opacity: 0.5; }
+.opt-row .muted { font-size: 13px; }
+.options-panel .btn-add { width: 100%; }

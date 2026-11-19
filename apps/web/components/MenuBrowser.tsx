@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import type { WebMenuData, MenuItemView } from "../lib/catalog-source";
 import { AddToCart } from "./AddToCart";
+import { OptionsPicker } from "./OptionsPicker";
 
 export function MenuBrowser({ menu }: { menu: WebMenuData }) {
   const [query, setQuery] = useState("");
@@ -77,8 +78,8 @@ export function MenuBrowser({ menu }: { menu: WebMenuData }) {
                   <span className="price">{item.price}</span>
                 )}
               </div>
-              {item.hasOptions ? (
-                <button type="button" className="btn-add" disabled>Options coming soon</button>
+              {item.options ? (
+                <OptionsPicker item={{ id: item.id, name: item.name, options: item.options }} />
               ) : (
                 <AddToCart id={item.id} name={item.name} price={item.discountPrice ?? item.price} />
               )}
