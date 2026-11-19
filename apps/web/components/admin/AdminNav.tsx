@@ -30,10 +30,12 @@ export function AdminNav({ roleKeys }: { roleKeys: RoleKey[] }) {
           <Link key={s.href} className="admin-link" href={s.href}>{s.label}</Link>
         ))}
       </nav>
-      <ThemeToggle />
-      <form action={logoutAction} className="admin-signout">
-        <button className="pill" type="submit">Sign out</button>
-      </form>
+      <div className="admin-foot">
+        <ThemeToggle />
+        <form action={logoutAction} className="admin-signout">
+          <button className="pill" type="submit">Sign out</button>
+        </form>
+      </div>
     </aside>
   );
 }

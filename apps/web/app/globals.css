@@ -354,3 +354,15 @@ body::after {
 @keyframes drift {
   from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(4vw, -3vh, 0) scale(1.08); }
 }
+
+/* Sidebar footer: theme toggle and sign out stay together at the bottom on desktop */
+.admin-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; }
+.admin-foot .admin-signout .pill { width: auto; }
+@media (min-width: 900px) {
+  .admin-foot {
+    margin-top: auto; flex-direction: column; align-items: stretch; gap: 12px;
+    padding-top: 16px; border-top: 1px solid var(--hairline);
+  }
+  .admin-foot .theme-toggle { justify-content: center; }
+  .admin-foot .admin-signout .pill { width: 100%; text-align: center; }
+}
