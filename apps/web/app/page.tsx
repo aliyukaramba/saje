@@ -18,6 +18,7 @@ export default async function Home() {
         <div className="brand">{restaurantName}<span>.</span></div>
         <nav className="nav" aria-label="Site">
           <Link className="pill" href="/menu">Menu</Link>
+          <Link className="pill" href="/reserve">Reserve</Link>
           <Link className="pill" href="/cart">Cart</Link>
           <ThemeToggle />
         </nav>

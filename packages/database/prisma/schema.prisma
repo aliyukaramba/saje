@@ -344,6 +344,7 @@ model DiningTable {
   areaId    String
   number    String         @unique // staff-facing table number
   name      String?
+  capacity  Int            @default(4)
   isActive  Boolean        @default(true)
   createdAt DateTime       @default(now())
   area      DiningArea     @relation(fields: [areaId], references: [id])
