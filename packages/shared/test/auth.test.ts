@@ -121,4 +121,3 @@ describe("password adapter", () => {
     expect(await passwordHasher.verify(h, "wrong")).toBe(false);
   });
 });
-});
