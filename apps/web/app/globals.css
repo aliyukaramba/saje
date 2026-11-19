@@ -213,3 +213,81 @@ h1.display strong { font-weight: 800; }
 
 /* Dish photos */
 .dish-img { display: block; width: 100%; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; margin-bottom: 12px; background: var(--hairline); }
+
+/* ---------- Glass + motion layer ---------- */
+:root {
+  --glass-fill: color-mix(in srgb, var(--surface) 62%, transparent);
+  --glass-edge: color-mix(in srgb, var(--surface) 85%, transparent);
+  --glass-shadow: 0 12px 32px -14px color-mix(in srgb, var(--ink) 24%, transparent);
+  --glass-lift: 0 22px 44px -18px color-mix(in srgb, var(--ink) 32%, transparent);
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* Soft colour light behind the glass so the blur has something to show */
+body {
+  background-image:
+    radial-gradient(60vw 42vw at 10% -8%, color-mix(in srgb, var(--brand) 18%, transparent), transparent 70%),
+    radial-gradient(50vw 40vw at 100% 4%, color-mix(in srgb, var(--accent) 16%, transparent), transparent 70%);
+  background-attachment: fixed;
+}
+
+/* Frosted panels. Solid brand and stat tiles are left as they are. */
+.card:not(.card-brand):not(.stat-hero),
+.topbar,
+.admin-side,
+.search,
+.seg-group {
+  background: var(--glass-fill);
+  -webkit-backdrop-filter: blur(16px) saturate(160%);
+  backdrop-filter: blur(16px) saturate(160%);
+}
+.card:not(.card-brand):not(.stat-hero) {
+  border: 1px solid var(--glass-edge);
+  box-shadow: var(--glass-shadow);
+}
+
+/* Entrance motion */
+@keyframes rise {
+  from { opacity: 0; transform: translateY(14px) scale(0.985); filter: blur(4px); }
+  to   { opacity: 1; transform: none; filter: none; }
+}
+.card, .product, .page-title, .section-head, .home-hero-copy, .lede {
+  animation: rise 0.6s var(--ease-out) both;
+}
+.product-grid > :nth-child(2) { animation-delay: 0.06s; }
+.product-grid > :nth-child(3) { animation-delay: 0.12s; }
+.product-grid > :nth-child(4) { animation-delay: 0.18s; }
+.product-grid > :nth-child(5) { animation-delay: 0.24s; }
+.product-grid > :nth-child(n+6) { animation-delay: 0.3s; }
+.stat-grid > :nth-child(2) { animation-delay: 0.08s; }
+.stat-grid > :nth-child(3) { animation-delay: 0.16s; }
+
+/* Hover lift on cards and dishes */
+.card, .product {
+  transition: transform 0.35s var(--ease-out), box-shadow 0.35s var(--ease-out);
+}
+.card:hover, .product:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--glass-lift);
+}
+
+/* Buttons and pills: springy press feedback */
+.btn-primary, .btn-add, .pill, .seg, .qty button, .admin-link {
+  transition: transform 0.2s var(--ease-out), background-color 0.25s, color 0.25s, box-shadow 0.25s;
+}
+.btn-primary:hover:not(:disabled), .btn-add:hover:not(:disabled) {
+  transform: translateY(-1px) scale(1.02);
+  box-shadow: 0 10px 22px -12px color-mix(in srgb, var(--ink) 40%, transparent);
+}
+.pill:hover, .seg:hover { transform: translateY(-1px); }
+.btn-primary:active, .btn-add:active, .pill:active, .seg:active, .qty button:active {
+  transform: scale(0.96);
+}
+
+/* Respect users who ask for less motion */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}
