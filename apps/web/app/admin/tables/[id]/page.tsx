@@ -70,10 +70,16 @@ export default async function TableBillPage({
               </form>
             ) : null}
             {canSettle ? (
-              <form action={settleAndCloseTable}>
+              <form action={settleAndCloseTable} className="checkout-form">
                 <input type="hidden" name="sessionId" value={session.id} />
                 <input type="hidden" name="tableId" value={table.id} />
-                <button className="btn-primary" type="submit">Record cash and close table</button>
+                <fieldset style={{ border: 0, padding: 0, margin: 0, display: "grid", gap: 6 }}>
+                  <legend style={{ fontWeight: 600 }}>How did the customer pay?</legend>
+                  <label className="opt-row"><input type="radio" name="paymentMethod" value="CASH" defaultChecked /> <span>Cash</span></label>
+                  <label className="opt-row"><input type="radio" name="paymentMethod" value="POS_TERMINAL" /> <span>Card terminal</span></label>
+                  <label className="opt-row"><input type="radio" name="paymentMethod" value="BANK_TRANSFER" /> <span>Bank transfer</span></label>
+                </fieldset>
+                <button className="btn-primary" type="submit">Record payment and close table</button>
               </form>
             ) : null}
           </section>

@@ -25,14 +25,20 @@ export async function requestBill(formData: FormData) {
 }
 
 /**
- * Records cash for every unpaid order on the table, completes ready orders, and closes the session.
- * Blocked while any order is still being prepared, so the kitchen is never bypassed.
+ * Records the chosen payment (cash, card terminal or bank transfer) for every unpaid order on the table,
+ * completes ready orders, and closes the session. Blocked while any order is still being prepared,
+ * so the kitchen is never bypassed.
  */
 export async function settleAndCloseTable(formData: FormData) {
   const staff = await staffWith("payments:record");
   if (!staff) redirect("/admin/login");
   const sessionId = String(formData.get("sessionId") ?? "");
   const tableId = String(formData.get("tableId") ?? "");
+  const methodRaw = String(formData.get("paymentMethod") ?? "CASH");
+  if (!(["CASH", "POS_TERMINAL", "BANK_TRANSFER"] as string[]).includes(methodRaw)) {
+    back(tableId, "Choose how the customer paid");
+  }
+  const method = methodRaw as "CASH" | "POS_TERMINAL" | "BANK_TRANSFER";
 
   const session = await prisma.tableSession.findUnique({
     where: { id: sessionId },
@@ -50,12 +56,12 @@ export async function settleAndCloseTable(formData: FormData) {
       const payment = await tx.payment.create({
         data: {
           orderId: o.id,
-          method: "CASH",
+          method,
           status: "SUCCESSFUL",
           amount: o.total,
           currency: "NGN",
-          reference: `CASH-${o.orderNumber}`,
-          idempotencyKey: `cash-${o.id}`,
+          reference: `${method}-${o.orderNumber}`,
+          idempotencyKey: `${method.toLowerCase()}-${o.id}`,
         },
       });
       await tx.paymentEvent.create({
