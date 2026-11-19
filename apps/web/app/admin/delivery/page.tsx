@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { formatMinor, parseMajorToMinor } from "@restaurant/shared";
@@ -18,9 +17,6 @@ export default async function DeliveryAdminPage({ searchParams }: { searchParams
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
-      <header className="topbar">
-        <Link className="brand" href="/admin">Delivery<span>.</span></Link>
-      </header>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
 
       <section className="card" style={{ marginTop: 16 }}>

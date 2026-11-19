@@ -10,12 +10,6 @@ export default async function AdminHome() {
   if (!staff) redirect("/admin/login");
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
-      <header className="topbar">
-        <div className="brand">Admin<span>.</span></div>
-        <form action={logoutAction}>
-          <button className="pill" type="submit">Sign out</button>
-        </form>
-      </header>
       <section className="card" style={{ marginTop: 16 }}>
         <h3>Signed in</h3>
         <p>{staff.user.fullName} ({staff.user.email})</p>

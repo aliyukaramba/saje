@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect, notFound } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { formatMinor, parseMajorToMinor, type Minor } from "@restaurant/shared";
@@ -42,9 +41,6 @@ export default async function TableBillPage({
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
-      <header className="topbar">
-        <Link className="brand" href="/admin/tables">Table {table.number}<span>.</span></Link>
-      </header>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
 
       {!session ? (

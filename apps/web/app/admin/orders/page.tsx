@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { staffWith } from "../../../lib/auth";
 import { loadOpenOrders } from "../../../lib/admin-orders";
@@ -17,10 +16,6 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
       <AutoRefresh seconds={20} />
-      <header className="topbar">
-        <Link className="brand" href="/admin">Orders<span>.</span></Link>
-        <Link className="pill" href="/admin/kitchen">Kitchen view</Link>
-      </header>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {orders.length === 0 ? (
         <div className="empty" style={{ marginTop: 16 }}>No open orders.</div>

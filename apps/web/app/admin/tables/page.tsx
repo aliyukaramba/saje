@@ -26,9 +26,6 @@ export default async function TablesPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
-      <header className="topbar">
-        <Link className="brand" href="/admin">Tables<span>.</span></Link>
-      </header>
       {error ? <p className="form-error" role="alert">{error}</p> : null}
 
       {newLink ? (
