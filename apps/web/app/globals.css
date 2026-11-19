@@ -291,3 +291,66 @@ body {
     transition: none !important;
   }
 }
+
+/* ---------- Motion pass 2 ---------- */
+
+/* Cart count pops whenever it changes */
+.cart-badge {
+  display: inline-grid; place-items: center; min-width: 20px; height: 20px; padding: 0 6px;
+  margin-left: 6px; border-radius: 999px; font-size: 12px; font-weight: 700; line-height: 1;
+  background: var(--accent); color: #121212; vertical-align: middle;
+  animation: badge-pop 0.45s var(--ease-out);
+}
+@keyframes badge-pop {
+  0% { transform: scale(0.4); } 60% { transform: scale(1.25); } 100% { transform: scale(1); }
+}
+
+/* Add to cart: confirmation check pops in, button flashes */
+.btn-add.is-added { animation: add-flash 0.5s var(--ease-out); }
+.btn-add .check { display: inline-block; margin-right: 6px; animation: check-pop 0.4s var(--ease-out); }
+@keyframes add-flash {
+  0% { transform: scale(0.94); } 55% { transform: scale(1.04); } 100% { transform: scale(1); }
+}
+@keyframes check-pop {
+  from { transform: scale(0) rotate(-40deg); opacity: 0; } to { transform: scale(1) rotate(0); opacity: 1; }
+}
+
+/* Primary buttons get a light sweep on hover */
+.btn-primary { position: relative; overflow: hidden; isolation: isolate; }
+.btn-primary::before {
+  content: ""; position: absolute; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(105deg, transparent 30%, color-mix(in srgb, #fff 28%, transparent) 50%, transparent 70%);
+  transform: translateX(-100%);
+}
+.btn-primary:hover:not(:disabled)::before { transform: translateX(100%); transition: transform 0.7s var(--ease-out); }
+
+/* Scroll-linked reveal for dishes, where the browser supports it. Without support the dishes simply show. */
+@supports (animation-timeline: view()) {
+  .product-grid > li {
+    animation: reveal-scroll linear both;
+    animation-timeline: view();
+    animation-range: entry 0% cover 32%;
+  }
+  @keyframes reveal-scroll {
+    from { opacity: 0; transform: translateY(32px) scale(0.97); }
+    to { opacity: 1; transform: none; }
+  }
+}
+
+/* Featured dish floats gently */
+.home-feature { animation: float 7s ease-in-out infinite; }
+@keyframes float {
+  0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); }
+}
+
+/* Ambient colour drift behind the glass */
+body::after {
+  content: ""; position: fixed; inset: -20%; z-index: -1; pointer-events: none;
+  background:
+    radial-gradient(40vw 40vw at 80% 30%, color-mix(in srgb, var(--brand) 14%, transparent), transparent 70%),
+    radial-gradient(35vw 35vw at 20% 80%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 70%);
+  animation: drift 24s ease-in-out infinite alternate;
+}
+@keyframes drift {
+  from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(4vw, -3vh, 0) scale(1.08); }
+}
