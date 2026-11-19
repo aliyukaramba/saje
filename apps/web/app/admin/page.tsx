@@ -29,6 +29,7 @@ export default async function AdminHome() {
         <p><Link href="/admin/staff">Staff: accounts and roles</Link></p>
         <p><Link href="/admin/tables">Tables and QR links</Link></p>
         <p><Link href="/admin/pos">Counter: walk-in cash sales</Link></p>
+        <p><Link href="/admin/delivery">Delivery: areas and ordering options</Link></p>
       </section>
     </div>
   );
