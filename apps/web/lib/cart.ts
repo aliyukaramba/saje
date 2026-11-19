@@ -16,7 +16,7 @@ export interface CartLine {
 const KEY = "saje-cart";
 export const CART_EVENT = "saje-cart-change";
 
-export function lineKeyOf(productId: string, variantId: string | undefined, modifierIds: string[]): string {
+export function lineKeyOf(productId: string, variantId?: string, modifierIds: string[] = []): string {
   return [productId, variantId ?? "", [...modifierIds].sort().join(",")].join("|");
 }
 
