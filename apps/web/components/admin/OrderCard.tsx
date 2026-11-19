@@ -31,6 +31,7 @@ export function OrderCard({ order, canCancel, back }: { order: OrderCardData; ca
       </ul>
       {order.type === "DELIVERY" && order.notes ? <div style={{ fontWeight: 600 }}>{order.notes}</div> : null}
       <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+        <a className="pill" href={`/admin/receipts/${order.orderNumber}`} target="_blank" rel="noopener">Receipt</a>
         {moves.map((to) => (
           <form key={to} action={advanceOrder}>
             <input type="hidden" name="id" value={order.id} />

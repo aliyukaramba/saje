@@ -20,7 +20,8 @@ export default async function PosPage({ searchParams }: { searchParams: Promise<
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {done ? (
         <p role="status" className="card">
-          Sale {done} is paid and sent to the kitchen.{change ? <> Change due: <strong>{change}</strong>.</> : null}
+          Sale {done} is paid and sent to the kitchen.{change ? <> Change due: <strong>{change}</strong>.</> : null}{" "}
+          <a className="pill" href={`/admin/receipts/${encodeURIComponent(done)}`} target="_blank" rel="noopener">Print receipt</a>
         </p>
       ) : null}
       <div style={{ marginTop: 16 }}>
