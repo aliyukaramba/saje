@@ -1,65 +1,87 @@
-// Phase 1 shell. Menu, prices and hours come from the database in Phase 2 — nothing is hardcoded here.
-const restaurantName = process.env.RESTAURANT_NAME ?? "Restaurant";
+import Link from "next/link";
+import { prisma, loadMenuFromDb } from "@restaurant/database";
+import { AddToCart } from "../components/AddToCart";
 
-export default function Home() {
+export const dynamic = "force-dynamic";
+
+export default async function Home() {
+  const restaurantName = process.env.RESTAURANT_NAME ?? "Restaurant";
+  const menu = await loadMenuFromDb(prisma).catch(() => null);
+  const available = (menu?.items ?? []).filter((i) => i.isAvailable && !i.hasOptions);
+  const featured = [...available.filter((i) => i.isFeatured), ...available.filter((i) => !i.isFeatured)].slice(0, 4);
+  const hero = featured[0];
+
   return (
-    <>
-      <div className="shell">
-        <header className="topbar">
-          <div className="brand">
-            {restaurantName}
-            <span>.</span>
-          </div>
-          <nav className="nav" aria-label="Ordering options">
-            <span className="pill" aria-disabled="true" title="Delivery is not available yet">Delivery</span>
-            <a className="pill is-active" href="/menu">Pickup</a>
-            <span className="pill" aria-disabled="true" title="Scan the code on your table to order">Dine-in</span>
-          </nav>
-        </header>
+    <div className="shell">
+      <header className="topbar">
+        <div className="brand">{restaurantName}<span>.</span></div>
+        <nav className="nav" aria-label="Site">
+          <Link className="pill" href="/menu">Menu</Link>
+          <Link className="pill" href="/cart">Cart</Link>
+        </nav>
+      </header>
 
-        <section className="hero">
-          <div>
-            <div className="eyebrow">Ordering is open</div>
-            <h1 className="display">
-              <strong>Fresh food,</strong> ordered your way.
-            </h1>
-            <p className="lede">
-              Browse the menu, order for delivery or pickup, or scan the code on your table.
-              Every order goes straight to the kitchen.
-            </p>
-            <div className="cta-row">
-              <a className="btn-primary" href="/menu">View menu</a>
-            </div>
+      <section className="home-hero">
+        <div className="home-hero-copy">
+          <div className="eyebrow">Order online</div>
+          <h1 className="display"><strong>Fresh food,</strong> ordered your way.</h1>
+          <p className="lede">Pick up your order at the counter, or scan the code on your table to order without waiting.</p>
+          <div className="cta-row">
+            <Link className="btn-primary" href="/menu">Order now</Link>
+            <Link className="pill" href="/menu">See the full menu</Link>
           </div>
+        </div>
 
-          <div className="status-grid" aria-label="Platform status">
-            <div className="card card-brand">
-              <h3>Today</h3>
-              <p style={{ color: "rgba(255,255,255,0.75)" }}>Opening hours load from settings.</p>
-              <div className="big">—</div>
-            </div>
-            <div className="card">
-              <h3>Delivery</h3>
-              <p>Zones and fees are set by the restaurant.</p>
-            </div>
-            <div className="card">
-              <h3>Pickup</h3>
-              <p>Choose a ready time at checkout.</p>
-            </div>
+        <div className="card card-brand home-feature" aria-label="Featured dish">
+          {hero ? (
+            <>
+              <div className="eyebrow" style={{ color: "rgba(255,255,255,0.75)" }}>Today&apos;s pick</div>
+              <div className="home-feature-name">{hero.name}</div>
+              {hero.description ? <p style={{ color: "rgba(255,255,255,0.8)" }}>{hero.description}</p> : null}
+              <div className="home-feature-price">{hero.discountPrice ?? hero.price}</div>
+              <div style={{ marginTop: 14 }}><AddToCart id={hero.id} name={hero.name} price={hero.discountPrice ?? hero.price} /></div>
+            </>
+          ) : (
+            <>
+              <div className="eyebrow" style={{ color: "rgba(255,255,255,0.75)" }}>Today&apos;s pick</div>
+              <div className="home-feature-name">Coming soon</div>
+              <p style={{ color: "rgba(255,255,255,0.8)" }}>Our menu is being prepared. Check back shortly.</p>
+            </>
+          )}
+        </div>
+      </section>
+
+      {featured.length > 0 ? (
+        <section style={{ marginTop: 40 }}>
+          <div className="section-head">
+            <h2>Popular right now</h2>
+            <Link className="pill" href="/menu">View all</Link>
           </div>
+          <ul className="product-grid">
+            {featured.map((item) => (
+              <li key={item.id} className="card product">
+                <h3>{item.name}</h3>
+                {item.description ? <p>{item.description}</p> : null}
+                <div className="price-row">
+                  {item.discountPrice ? (
+                    <>
+                      <span className="price">{item.discountPrice}</span>
+                      <s className="was">{item.price}</s>
+                    </>
+                  ) : (
+                    <span className="price">{item.price}</span>
+                  )}
+                </div>
+                <AddToCart id={item.id} name={item.name} price={item.discountPrice ?? item.price} />
+              </li>
+            ))}
+          </ul>
         </section>
+      ) : null}
 
-        <section id="menu" aria-labelledby="menu-heading">
-          <h2 id="menu-heading" style={{ fontSize: 22, fontWeight: 700, letterSpacing: "-0.02em" }}>Menu</h2>
-          <div className="empty">
-            The menu appears here once it is loaded from the restaurant database (Phase 2).
-          </div>
-        </section>
-
-        <footer className="footer">
-          Terms · Privacy · Contact — pages arrive in Phase 2.
-        </footer>
-      </div>
-    </>
+      <footer className="footer">
+        {restaurantName} · Pickup and delivery online · Dine-in by scanning the code on your table
+      </footer>
+    </div>
   );
 }

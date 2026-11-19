@@ -12,23 +12,21 @@ const SECTIONS: { href: string; label: string; permission: Permission }[] = [
   { href: "/admin/staff", label: "Staff", permission: "staff:manage" },
 ];
 
-/** Top navigation for signed-in staff. Only shows sections the user's roles can open. */
+/** Sidebar on desktop, top bar on phones. Only shows sections the user's roles can open. */
 export function AdminNav({ roleKeys }: { roleKeys: RoleKey[] }) {
   const sections = SECTIONS.filter((s) => canAny(roleKeys, s.permission));
   return (
-    <div className="shell" style={{ paddingTop: 24 }}>
-      <header className="topbar">
-        <Link className="brand" href="/admin">Admin<span>.</span></Link>
-        <form action={logoutAction}>
-          <button className="pill" type="submit">Sign out</button>
-        </form>
-      </header>
-      <nav aria-label="Admin sections" className="nav" style={{ flexWrap: "wrap", marginTop: 12 }}>
-        <Link className="pill" href="/admin">Home</Link>
+    <aside className="admin-side" aria-label="Admin navigation">
+      <Link className="brand" href="/admin">Admin<span>.</span></Link>
+      <nav aria-label="Admin sections" className="admin-links">
+        <Link className="admin-link" href="/admin">Overview</Link>
         {sections.map((s) => (
-          <Link key={s.href} className="pill" href={s.href}>{s.label}</Link>
+          <Link key={s.href} className="admin-link" href={s.href}>{s.label}</Link>
         ))}
       </nav>
-    </div>
+      <form action={logoutAction} className="admin-signout">
+        <button className="pill" type="submit">Sign out</button>
+      </form>
+    </aside>
   );
 }
