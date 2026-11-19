@@ -417,3 +417,40 @@ body::after {
   .admin-side .admin-links { flex: 0 0 auto; }
   .admin-side .admin-foot { margin-top: auto; }
 }
+
+/* Single-icon theme button */
+.theme-icon {
+  width: 40px; height: 40px; border-radius: 999px; flex: 0 0 auto;
+  display: inline-grid; place-items: center; cursor: pointer;
+  border: 1px solid var(--hairline); background: var(--glass-fill); color: var(--ink);
+  -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+  transition: transform 0.2s var(--ease-out), background-color 0.25s;
+}
+.theme-icon:hover { transform: rotate(-18deg) scale(1.06); }
+.theme-icon:active { transform: scale(0.94); }
+.theme-icon:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.theme-icon svg { transition: transform 0.4s var(--ease-out); }
+.admin-foot .theme-toggle { display: flex; justify-content: center; }
+
+/* Mobile pass: comfortable spacing, large tap targets, no sideways scrolling */
+@media (max-width: 639px) {
+  .shell { padding: 0 16px; }
+  .page-title { font-size: 30px; margin: 4px 0 14px; }
+  .home-hero { padding-top: 12px; gap: 18px; }
+  .home-feature { padding: 24px; min-height: 0; }
+  .home-feature-name { font-size: 24px; }
+  .lede { font-size: 16px; margin-bottom: 20px; }
+  .cta-row > * { flex: 1 1 auto; text-align: center; }
+  .pill, .btn-primary, .btn-add, .seg, .qty button { min-height: 44px; }
+  .btn-primary, .btn-add { display: inline-flex; align-items: center; justify-content: center; }
+  .qty button { width: 44px; height: 44px; }
+  .menu-tools { margin-bottom: 16px; }
+  .search { min-height: 44px; font-size: 16px; } /* 16px stops iOS zooming in on focus */
+  .checkout-form input, .checkout-form select { font-size: 16px; min-height: 44px; }
+  .section-head h2, .section-head h3 { font-size: 20px; }
+  .admin-main { padding: 8px 16px 40px; }
+  .card { padding: 18px; }
+  .card .big { font-size: 26px; }
+  img, video { max-width: 100%; height: auto; }
+  body { overflow-x: hidden; }
+}
