@@ -1,7 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { formatMinor } from "@restaurant/shared";
+// Pure money helper only: the package root pulls in server-only code that cannot go in the browser bundle.
+import { formatMinor } from "@restaurant/shared/money";
 import { addToCart } from "../lib/cart";
 
 export interface OptionChoice {
