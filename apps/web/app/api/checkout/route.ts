@@ -1,9 +1,26 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { prisma, createPickupOrder, OrderInputError } from "@restaurant/database";
+import { prisma, createPickupOrder, createDeliveryOrder, OrderInputError } from "@restaurant/database";
 import { TopifyClient } from "@restaurant/shared";
 
 export const dynamic = "force-dynamic";
+
+const pickupSchema = z.object({
+  type: z.literal("PICKUP"),
+  pickupAt: z.string().datetime(),
+});
+
+const deliverySchema = z.object({
+  type: z.literal("DELIVERY"),
+  zoneId: z.string().min(1).max(64),
+  address: z.object({
+    line1: z.string().trim().min(3).max(160),
+    city: z.string().trim().min(2).max(80),
+    state: z.string().trim().min(2).max(80),
+    landmark: z.string().trim().max(160).optional(),
+    instructions: z.string().trim().max(300).optional(),
+  }),
+});
 
 const schema = z.object({
   lines: z.array(z.object({
@@ -17,7 +34,7 @@ const schema = z.object({
     phone: z.string().trim().min(7).max(20),
     email: z.string().trim().email().max(254),
   }),
-  pickupAt: z.string().datetime(),
+  fulfilment: z.discriminatedUnion("type", [pickupSchema, deliverySchema]),
 });
 
 export async function POST(req: Request) {
@@ -25,11 +42,13 @@ export async function POST(req: Request) {
   if (!parsed.success) {
     return NextResponse.json({ error: "Please check your details and try again." }, { status: 422 });
   }
-  const { lines, customer, pickupAt } = parsed.data;
+  const { lines, customer, fulfilment } = parsed.data;
   try {
-    const order = await createPickupOrder(prisma, {
-      lines, customer, pickupAt: new Date(pickupAt), now: new Date(),
-    });
+    const now = new Date();
+    const order = fulfilment.type === "PICKUP"
+      ? await createPickupOrder(prisma, { lines, customer, pickupAt: new Date(fulfilment.pickupAt), now })
+      : await createDeliveryOrder(prisma, { lines, customer, zoneId: fulfilment.zoneId, address: fulfilment.address, now });
+
     const topify = new TopifyClient({
       publicKey: process.env.TOPIFY_PUBLIC_KEY,
       secretKey: process.env.TOPIFY_SECRET_KEY,

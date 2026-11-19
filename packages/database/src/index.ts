@@ -7,3 +7,4 @@ export { PrismaClient, Prisma } from "@prisma/client";
 export type * from "@prisma/client";
 export * from "./stores/table-orders";
 export * from "./stores/pos";
+export * from "./stores/delivery";
