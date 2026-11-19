@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { prisma, loadMenuFromDb } from "@restaurant/database";
 import { AddToCart } from "../components/AddToCart";
+import { ThemeToggle } from "../components/ThemeToggle";
 
 export const dynamic = "force-dynamic";
 
@@ -18,6 +19,7 @@ export default async function Home() {
         <nav className="nav" aria-label="Site">
           <Link className="pill" href="/menu">Menu</Link>
           <Link className="pill" href="/cart">Cart</Link>
+          <ThemeToggle />
         </nav>
       </header>
 

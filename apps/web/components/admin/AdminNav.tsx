@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { canAny, type Permission, type RoleKey } from "@restaurant/shared";
 import { logoutAction } from "../../app/admin/login/actions";
+import { ThemeToggle } from "../ThemeToggle";
 
 const SECTIONS: { href: string; label: string; permission: Permission }[] = [
   { href: "/admin/orders", label: "Orders", permission: "orders:read" },
@@ -24,6 +25,7 @@ export function AdminNav({ roleKeys }: { roleKeys: RoleKey[] }) {
           <Link key={s.href} className="admin-link" href={s.href}>{s.label}</Link>
         ))}
       </nav>
+      <ThemeToggle />
       <form action={logoutAction} className="admin-signout">
         <button className="pill" type="submit">Sign out</button>
       </form>

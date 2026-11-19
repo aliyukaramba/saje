@@ -191,3 +191,12 @@ h1.display strong { font-weight: 800; }
 .bars > div { flex: 1; min-height: 3px; border-radius: 6px 6px 0 0; background: var(--accent); }
 .recent-list { list-style: none; margin: 12px 0 0; padding: 0; display: grid; gap: 12px; }
 .recent-list li { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+
+/* Theme switch: an explicit choice overrides the system setting */
+:root[data-theme="dark"] {
+  --canvas: #0f0f11; --surface: #18181b; --ink: #f4f4f5; --ink-soft: #d4d4d8;
+  --muted: #8e8e96; --hairline: #2a2a2f; --brand: #2c7a74;
+  color-scheme: dark;
+}
+:root[data-theme="light"] { color-scheme: light; }
+.theme-toggle { display: inline-flex; gap: 6px; }
