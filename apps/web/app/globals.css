@@ -538,3 +538,18 @@ body::after {
   .cta-row .btn-primary, .cta-row .pill { padding: 10px 14px; }
   .cart-line .qty button { width: 34px; height: 34px; }
 }
+
+/* Round add-to-cart icon on the price row */
+.icon-add {
+  width: 40px; height: 40px; border-radius: 999px; border: 0; flex: 0 0 auto; margin-left: auto;
+  display: inline-grid; place-items: center; cursor: pointer;
+  background: var(--brand); color: var(--brand-ink);
+  transition: transform 0.2s var(--ease-out), background-color 0.25s;
+}
+.icon-add:hover { transform: translateY(-2px) scale(1.04); }
+.icon-add:active { transform: scale(0.92); }
+.icon-add:focus-visible { outline: 3px solid var(--accent); outline-offset: 2px; }
+.icon-add.is-added { background: var(--success); animation: add-flash 0.5s var(--ease-out); }
+@media (max-width: 639px) {
+  .icon-add { width: 36px; height: 36px; }
+}

@@ -73,7 +73,7 @@ export function MenuBrowser({ menu }: { menu: WebMenuData }) {
               )}
               <h3>{item.name}</h3>
               {item.description ? <p>{item.description}</p> : null}
-              <div className="price-row">
+              <div className="price-row" style={{ justifyContent: "space-between" }}>
                 {item.discountPrice ? (
                   <>
                     <span className="price">{item.discountPrice}</span>
@@ -82,11 +82,14 @@ export function MenuBrowser({ menu }: { menu: WebMenuData }) {
                 ) : (
                   <span className="price">{item.price}</span>
                 )}
+                {!item.options ? (
+                  <AddToCart id={item.id} name={item.name} price={item.discountPrice ?? item.price} mode="icon" />
+                ) : null}
               </div>
               {item.options ? (
                 <OptionsPicker item={{ id: item.id, name: item.name, options: item.options }} />
               ) : (
-                <AddToCart id={item.id} name={item.name} price={item.discountPrice ?? item.price} />
+                <AddToCart id={item.id} name={item.name} price={item.discountPrice ?? item.price} mode="order" />
               )}
             </li>
           ))}
