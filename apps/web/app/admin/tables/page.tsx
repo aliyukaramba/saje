@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
@@ -20,7 +20,11 @@ export default async function TablesPage({ searchParams }: { searchParams: Promi
   if (once) {
     try {
       const parsed = JSON.parse(once) as { number: string; token: string };
-      const base = process.env.PUBLIC_SITE_URL ?? "";
+      // Use the address this admin is browsing (the same site guests open), unless PUBLIC_SITE_URL is set.
+      const h = await headers();
+      const host = h.get("x-forwarded-host") ?? h.get("host");
+      const proto = h.get("x-forwarded-proto") ?? "https";
+      const base = (process.env.PUBLIC_SITE_URL || (host ? `${proto}://${host}` : "")).replace(/\/$/, "");
       newLink = { number: parsed.number, url: `${base}/t/${parsed.token}` };
     } catch { /* ignore a malformed cookie */ }
   }
