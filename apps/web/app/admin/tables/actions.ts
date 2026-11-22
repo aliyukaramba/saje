@@ -43,10 +43,9 @@ export async function issueTableLink(formData: FormData) {
   const table = await prisma.diningTable.findUnique({ where: { id: tableId } });
   if (!table) fail("Table not found");
   const token = generateQrToken();
-  await prisma.$transaction([
-    prisma.qrToken.updateMany({ where: { tableId, status: "ACTIVE" }, data: { status: "REVOKED", revokedAt: new Date() } }),
-    prisma.qrToken.create({ data: { tableId, tokenHash: hashQrToken(token) } }),
-  ]);
+  // Revoke the old links first, then create the new one, so the new link is always the one left active.
+  await prisma.qrToken.updateMany({ where: { tableId, status: "ACTIVE" }, data: { status: "REVOKED", revokedAt: new Date() } });
+  await prisma.qrToken.create({ data: { tableId, tokenHash: hashQrToken(token) } });
   const jar = await cookies();
   jar.set(QR_ONCE_COOKIE, JSON.stringify({ number: table.number, token }), {
     httpOnly: true,
