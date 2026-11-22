@@ -2,7 +2,8 @@ import Link from "next/link";
 import { canAny, type Permission, type RoleKey } from "@restaurant/shared";
 import { logoutAction } from "../../app/admin/login/actions";
 import { ThemeToggle } from "../ThemeToggle";
-import { Icon, type IconName } from "../Icon";
+import type { IconName } from "../Icon";
+import { AdminLink } from "./AdminLink";
 
 const SECTIONS: { href: string; label: string; permission: Permission; icon: IconName }[] = [
   { href: "/admin/orders", label: "Orders", permission: "orders:read", icon: "orders" },
@@ -27,9 +28,9 @@ export function AdminNav({ roleKeys }: { roleKeys: RoleKey[] }) {
     <aside className="admin-side" aria-label="Admin navigation">
       <Link className="brand" href="/admin">Admin<span>.</span></Link>
       <nav aria-label="Admin sections" className="admin-links">
-        <Link className="admin-link" href="/admin"><Icon name="overview" size={18} /><span>Overview</span></Link>
+        <AdminLink href="/admin" label="Overview" icon="overview" exact />
         {sections.map((s) => (
-          <Link key={s.href} className="admin-link" href={s.href}><Icon name={s.icon} size={18} /><span>{s.label}</span></Link>
+          <AdminLink key={s.href} href={s.href} label={s.label} icon={s.icon} />
         ))}
       </nav>
       <div className="admin-foot">
