@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { formatMinor, parseMajorToMinor } from "@restaurant/shared";
@@ -56,6 +57,7 @@ export default async function AdminMenuPage({ searchParams }: { searchParams: Pr
                 <div className="muted">{p.category.name} · {formatMinor(parseMajorToMinor(p.basePrice.toString()))}</div>
               </div>
               <div style={{ display: "flex", gap: 8 }}>
+                <Link className="pill" href={`/admin/menu/${p.id}`}>Edit</Link>
                 <form action={updateProductAvailability}>
                   <input type="hidden" name="id" value={p.id} />
                   <input type="hidden" name="available" value={String(p.isAvailable)} />

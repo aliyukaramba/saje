@@ -5,6 +5,7 @@ import { ThemeToggle } from "../ThemeToggle";
 
 const SECTIONS: { href: string; label: string; permission: Permission }[] = [
   { href: "/admin/orders", label: "Orders", permission: "orders:read" },
+  { href: "/admin/receipts", label: "Receipts", permission: "orders:read" },
   { href: "/admin/kitchen", label: "Kitchen", permission: "kitchen:view" },
   { href: "/admin/pos", label: "Counter", permission: "pos:sell" },
   { href: "/admin/tables", label: "Tables", permission: "tables:manage" },

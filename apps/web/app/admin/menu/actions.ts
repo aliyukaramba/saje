@@ -110,3 +110,47 @@ export async function uploadProductImage(formData: FormData) {
   revalidatePath("/");
   redirect("/admin/menu");
 }
+
+export async function updateProduct(formData: FormData) {
+  await requireMenuAccess();
+  const id = String(formData.get("id") ?? "");
+  const name = String(formData.get("name") ?? "").trim();
+  const description = String(formData.get("description") ?? "").trim();
+  const categoryId = String(formData.get("categoryId") ?? "");
+  if (!id) fail("Missing dish");
+  if (name.length < 2 || name.length > 120) fail("Dish name must be 2 to 120 characters");
+  if (!categoryId) fail("Choose a category");
+
+  let price: bigint;
+  try {
+    price = parseMajorToMinor(String(formData.get("price") ?? "").replace(/,/g, "").trim());
+  } catch {
+    fail("Enter the price in naira, for example 4500");
+  }
+  if (price <= 0n) fail("Price must be greater than zero");
+
+  const discountRaw = String(formData.get("discountPrice") ?? "").replace(/,/g, "").trim();
+  let discount: bigint | null = null;
+  if (discountRaw) {
+    try {
+      discount = parseMajorToMinor(discountRaw);
+    } catch {
+      fail("Enter the discount price in naira, or leave it empty");
+    }
+    if (discount <= 0n || discount >= price) fail("The discount price must be lower than the price");
+  }
+
+  await prisma.product.update({
+    where: { id },
+    data: {
+      name,
+      description: description || null,
+      categoryId,
+      basePrice: minorToDecimal(price),
+      discountPrice: discount !== null ? minorToDecimal(discount) : null,
+    },
+  });
+  revalidatePath("/admin/menu");
+  revalidatePath("/menu");
+  redirect("/admin/menu");
+}
