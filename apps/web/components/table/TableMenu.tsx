@@ -42,6 +42,7 @@ export function TableMenu({ token, menu, tableNumber }: { token: string; menu: W
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [sent, setSent] = useState<string | null>(null);
+  const [categoryId, setCategoryId] = useState<string | "all">("all");
 
   useEffect(() => {
     try {
@@ -123,13 +124,21 @@ export function TableMenu({ token, menu, tableNumber }: { token: string; menu: W
   }
 
   const count = lines.reduce((s, l) => s + l.quantity, 0);
-  const available = menu.items.filter((i) => i.isAvailable);
+  const available = menu.items.filter((i) => i.isAvailable && (categoryId === "all" || i.categoryId === categoryId));
   const optionLines = lines.filter((l) => l.optionLabel);
 
   return (
     <div>
       <TableOrderStatus token={token} />
       <p className="muted">Table {tableNumber}</p>
+      <div className="nav" role="group" aria-label="Filter by category" style={{ marginBottom: 16 }}>
+        <button type="button" className="pill" aria-pressed={categoryId === "all"} onClick={() => setCategoryId("all")}>All</button>
+        {menu.categories.map((c) => (
+          <button key={c.id} type="button" className="pill" aria-pressed={categoryId === c.id} onClick={() => setCategoryId(c.id)}>
+            {c.name}
+          </button>
+        ))}
+      </div>
       <ul className="product-grid">
         {available.map((item) => (
           <li key={item.id} className="card product">
