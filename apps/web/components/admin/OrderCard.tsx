@@ -12,6 +12,7 @@ export interface OrderCardData {
   items: { quantity: number; nameSnapshot: string }[];
   type?: string;
   notes?: string | null;
+  tableNumber?: string | null;
 }
 
 export function OrderCard({ order, canCancel, back }: { order: OrderCardData; canCancel: boolean; back: string }) {
@@ -19,7 +20,10 @@ export function OrderCard({ order, canCancel, back }: { order: OrderCardData; ca
   return (
     <li className="card" style={{ display: "grid", gap: 8 }}>
       <div style={{ display: "flex", justifyContent: "space-between", gap: 8 }}>
-        <strong>{order.orderNumber}</strong>
+        <strong>
+          {order.orderNumber}
+          {order.tableNumber ? <span className="pill" style={{ marginLeft: 8 }}>Table {order.tableNumber}</span> : null}
+        </strong>
         <span className="pill" aria-label="Order status">{order.status.replace(/_/g, " ")}</span>
       </div>
       <div className="muted">

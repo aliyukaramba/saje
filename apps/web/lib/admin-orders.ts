@@ -6,7 +6,10 @@ import type { OrderStatus } from "@restaurant/shared";
 export async function loadOpenOrders(): Promise<OrderCardData[]> {
   const rows = await prisma.order.findMany({
     where: { status: { notIn: ["COMPLETED", "CANCELLED"] } },
-    include: { items: { select: { quantity: true, nameSnapshot: true } } },
+    include: {
+      items: { select: { quantity: true, nameSnapshot: true } },
+      session: { select: { table: { select: { number: true } } } },
+    },
     orderBy: [{ scheduledFor: "asc" }, { placedAt: "asc" }],
     take: 100,
   });
@@ -21,5 +24,6 @@ export async function loadOpenOrders(): Promise<OrderCardData[]> {
     items: o.items,
     type: o.type,
     notes: o.specialInstructions,
+    tableNumber: o.session?.table.number ?? null,
   }));
 }
