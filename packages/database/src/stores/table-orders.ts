@@ -85,3 +85,34 @@ export async function createTableOrder(db: PrismaClient, input: { rawToken: stri
 
   return { orderNumber, tableNumber: table.number };
 }
+
+/**
+ * Returns the status of orders a guest placed from this table in the current visit. Only orders
+ * in the table's open session are returned, so when staff close the bill the list is empty again.
+ * Returns null when the table link is not valid.
+ */
+export async function findTableOrderStatuses(db: PrismaClient, input: { rawToken: string; orderNumbers: string[] }) {
+  const table = await findTableByToken(db, input.rawToken);
+  if (!table) return null;
+  const orderNumbers = [...new Set(input.orderNumbers)].slice(0, 20);
+  if (orderNumbers.length === 0) return [];
+  const rows = await db.order.findMany({
+    where: {
+      orderNumber: { in: orderNumbers },
+      session: { is: { tableId: table.id, status: { not: "CLOSED" } } },
+    },
+    select: {
+      orderNumber: true,
+      status: true,
+      placedAt: true,
+      items: { select: { quantity: true, nameSnapshot: true } },
+    },
+    orderBy: { placedAt: "asc" },
+  });
+  return rows.map((o) => ({
+    orderNumber: o.orderNumber,
+    status: o.status,
+    placedAt: o.placedAt.toISOString(),
+    items: o.items,
+  }));
+}

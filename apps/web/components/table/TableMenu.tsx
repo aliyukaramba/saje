@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { WebMenuData } from "../../lib/catalog-source";
 import { lineKeyOf } from "../../lib/cart";
 import { OptionsPicker, type OptionChoice } from "../OptionsPicker";
+import { TableOrderStatus, rememberTableOrder } from "./TableOrderStatus";
 
 interface Line {
   lineKey: string;
@@ -98,6 +99,7 @@ export function TableMenu({ token, menu, tableNumber }: { token: string; menu: W
         setError(data.error ?? "We could not send your order.");
       } else {
         save([]);
+        rememberTableOrder(token, data.orderNumber);
         setSent(data.orderNumber);
       }
     } catch {
@@ -109,10 +111,13 @@ export function TableMenu({ token, menu, tableNumber }: { token: string; menu: W
 
   if (sent) {
     return (
+      <div>
+      <TableOrderStatus token={token} />
       <div className="card">
         <h2>Order sent to the kitchen</h2>
         <p>Order {sent} for table {tableNumber}. Add more any time. Ask staff for the bill when you are ready.</p>
         <button className="btn-primary" type="button" onClick={() => setSent(null)}>Order more</button>
+      </div>
       </div>
     );
   }
@@ -123,6 +128,7 @@ export function TableMenu({ token, menu, tableNumber }: { token: string; menu: W
 
   return (
     <div>
+      <TableOrderStatus token={token} />
       <p className="muted">Table {tableNumber}</p>
       <ul className="product-grid">
         {available.map((item) => (
