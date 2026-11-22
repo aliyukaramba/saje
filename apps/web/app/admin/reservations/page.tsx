@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
 import { setReservationStatus, setTableCapacity } from "./actions";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function ReservationsPage({ searchParams }: { searchParams:
 
   return (
     <div>
-      <h1 className="page-title"><strong>Reservations</strong></h1>
+      <AdminPageHeader title="Reservations" subtitle="Bookings for today and the next two weeks" />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
 
       {reservations.length === 0 ? <div className="empty" style={{ marginTop: 16 }}>No reservations in the next two weeks.</div> : (

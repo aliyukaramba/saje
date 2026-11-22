@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
 import { assignDriver } from "./actions";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -25,7 +26,7 @@ export default async function DispatchPage({ searchParams }: { searchParams: Pro
 
   return (
     <div>
-      <h1 className="page-title"><strong>Dispatch</strong></h1>
+      <AdminPageHeader title="Dispatch" subtitle="Assign deliveries to drivers" />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {drivers.length === 0 ? (
         <div className="empty">No delivery drivers yet. Create a staff member with the Delivery driver role in Staff.</div>

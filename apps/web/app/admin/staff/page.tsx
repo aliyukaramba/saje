@@ -3,6 +3,7 @@ import { prisma } from "@restaurant/database";
 import { ROLE_KEYS } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
 import { createStaff, updateStaffRoles, suspendStaff, reactivateStaff } from "./actions";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,7 @@ export default async function StaffPage({ searchParams }: { searchParams: Promis
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
+      <AdminPageHeader title="Staff" subtitle="Team members and their roles" />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
 
       <section className="card" style={{ marginTop: 16 }}>

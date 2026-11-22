@@ -3,6 +3,7 @@ import { prisma } from "@restaurant/database";
 import { formatMinor, parseMajorToMinor, type Minor } from "@restaurant/shared";
 import { staffWith } from "../../../../lib/auth";
 import { PrintButton } from "../../../../components/admin/PrintButton";
+import { AdminPageHeader } from "../../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -25,6 +26,7 @@ export default async function ReceiptPage({ params }: { params: Promise<{ orderN
 
   return (
     <div className="receipt-wrap">
+      <AdminPageHeader title="Receipt" subtitle="Print this receipt or issue a refund" />
       <div className="receipt" aria-label={`Receipt ${order.orderNumber}`}>
         <div className="receipt-head">
           <strong>{process.env.RESTAURANT_NAME ?? "Restaurant"}</strong>

@@ -5,6 +5,7 @@ import { prisma } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
 import { createTable, issueTableLink, dismissTableLink } from "./actions";
 import { QR_ONCE_COOKIE } from "../../../lib/qr-cookie";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -26,6 +27,7 @@ export default async function TablesPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
+      <AdminPageHeader title="Tables" subtitle="Table QR links and open bills" />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
 
       {newLink ? (

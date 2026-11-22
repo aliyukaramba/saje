@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma, loadMenuFromDb } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
 import { PosRegister, type PosItem } from "../../../components/admin/PosRegister";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default async function PosPage({ searchParams }: { searchParams: Promise<
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
+      <AdminPageHeader title="Counter" subtitle="Ring up walk-in sales" />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {done ? (
         <p role="status" className="card">

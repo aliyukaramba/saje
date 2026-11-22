@@ -588,7 +588,7 @@ body:has(.admin-layout) { background-image: none; }
   transition: background-color 0.2s, color 0.2s;
 }
 .admin-layout .admin-link:hover { background: color-mix(in srgb, var(--ink) 5%, transparent); color: var(--ink); }
-.admin-layout .admin-foot { border-top-color: var(--soft-line); }
+.admin-layout .admin-foot { border-top-color: var(--line); }
 
 /* Main area and page headings */
 .admin-layout .admin-main { padding: 36px 44px 64px; }
@@ -619,8 +619,8 @@ body:has(.admin-layout) { background-image: none; }
 /* Lists and tables: quiet rules */
 .admin-layout table { border-collapse: collapse; width: 100%; }
 .admin-layout th { font-size: 12px; font-weight: 600; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
-.admin-layout td { padding: 12px; border-bottom: 1px solid var(--soft-line); vertical-align: middle; }
-.admin-layout .recent-list li { border-bottom: 1px solid var(--soft-line); padding: 12px 0; }
+.admin-layout td { padding: 12px; border-bottom: 1px solid var(--line); vertical-align: middle; }
+.admin-layout .recent-list li { border-bottom: 1px solid var(--line); padding: 12px 0; }
 .admin-layout .recent-list li:last-child { border-bottom: 0; }
 
 /* Buttons and fields: consistent radius and weight */
@@ -651,7 +651,7 @@ body:has(.admin-layout) { background-image: none; }
 .admin-layout .admin-foot,
 .admin-layout .admin-side .admin-foot {
   display: flex; flex-direction: row; align-items: center; justify-content: space-between; gap: 10px;
-  margin-top: auto; padding-top: 16px; border-top: 1px solid var(--soft-line);
+  margin-top: auto; padding-top: 16px; border-top: 1px solid var(--line);
 }
 .admin-layout .admin-foot .admin-signout { flex: 1 1 auto; }
 .admin-layout .admin-foot .admin-signout .pill { width: 100%; text-align: center; }
@@ -708,11 +708,11 @@ body:has(.admin-layout) { background-image: none; }
 .admin-layout .menu-admin .menu-price { font-size: 15px; font-weight: 600; color: var(--price); margin-top: 6px; }
 .admin-layout .menu-admin .menu-card.is-hidden .menu-body { opacity: 0.6; }
 .admin-layout .menu-admin .menu-card.is-hidden .menu-media img, .admin-layout .menu-admin .menu-card.is-hidden .menu-media-empty { opacity: 0.5; }
-.admin-layout .menu-admin .menu-actions { display: flex; gap: 6px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--soft-line); }
+.admin-layout .menu-admin .menu-actions { display: flex; gap: 6px; flex-wrap: wrap; padding: 12px 16px; border-top: 1px solid var(--line); }
 .admin-layout .menu-admin .menu-actions form { margin: 0; }
 .admin-layout .menu-admin .menu-actions .pill { min-height: 32px; padding: 5px 12px; font-size: 13px; }
 .admin-layout .menu-admin .menu-danger { color: var(--danger); }
-.admin-layout .menu-admin .menu-photo { border-top: 1px solid var(--soft-line); padding: 10px 16px; font-size: 13px; }
+.admin-layout .menu-admin .menu-photo { border-top: 1px solid var(--line); padding: 10px 16px; font-size: 13px; }
 .admin-layout .menu-admin .menu-photo summary { cursor: pointer; color: var(--brand); font-weight: 600; list-style: none; }
 .admin-layout .menu-admin .menu-photo summary::-webkit-details-marker { display: none; }
 .admin-layout .menu-admin .menu-upload { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
@@ -730,4 +730,35 @@ body:has(.admin-layout) { background-image: none; }
   .admin-layout .menu-admin .menu-name { font-size: 14px; }
   .admin-layout .menu-admin .menu-actions { padding: 10px 12px; }
   .admin-layout .menu-admin .menu-photo { padding: 8px 12px; }
+}
+
+/* ===== Admin: shared page header, panels, lists and forms ===== */
+.admin-layout .adm-head { display: flex; justify-content: space-between; align-items: flex-end; gap: 16px; flex-wrap: wrap; margin: 0 0 26px; padding-bottom: 18px; border-bottom: 1px solid var(--line); }
+.admin-layout .adm-title { font-size: 28px; font-weight: 650; letter-spacing: -0.025em; line-height: 1.1; margin: 0; color: var(--ink); }
+.admin-layout .adm-sub { margin: 6px 0 0; color: var(--muted); font-size: 14px; }
+.admin-layout .adm-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+
+/* Section headings inside and outside panels */
+.admin-layout section.card > h2 { font-size: 15px; font-weight: 600; letter-spacing: -0.005em; color: var(--ink); margin: 0 0 14px; text-transform: none; }
+.admin-layout main h2, .admin-layout .admin-main > div > h2 { font-size: 17px; font-weight: 600; letter-spacing: -0.01em; color: var(--ink); margin: 28px 0 12px; }
+
+/* Lists of rows (orders, dishes, reservations, staff) */
+.admin-layout ul.cart-lines { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; }
+.admin-layout .cart-line { display: flex; justify-content: space-between; align-items: center; gap: 14px; padding: 14px 16px; flex-wrap: wrap; }
+.admin-layout .cart-line strong { font-weight: 600; color: var(--ink); }
+
+/* Forms: consistent labels and full-width fields */
+.admin-layout .checkout-form { gap: 14px; }
+.admin-layout .checkout-form label { font-size: 13px; font-weight: 500; color: var(--ink-soft); display: grid; gap: 6px; }
+.admin-layout .checkout-form input, .admin-layout .checkout-form select, .admin-layout .checkout-form textarea { width: 100%; }
+
+/* Tables: quiet and readable */
+.admin-layout .card table { border-collapse: collapse; width: 100%; }
+.admin-layout .card th { font-size: 11px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); text-align: left; padding: 10px 12px; border-bottom: 1px solid var(--line); }
+.admin-layout .card td { padding: 12px; border-bottom: 1px solid var(--line); font-size: 14px; }
+
+/* Phones: tighter header */
+@media (max-width: 639px) {
+  .admin-layout .adm-title { font-size: 24px; }
+  .admin-layout .adm-head { margin-bottom: 18px; padding-bottom: 14px; }
 }

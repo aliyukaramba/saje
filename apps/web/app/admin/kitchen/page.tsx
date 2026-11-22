@@ -3,6 +3,7 @@ import { staffWith } from "../../../lib/auth";
 import { loadOpenOrders } from "../../../lib/admin-orders";
 import { OrderCard } from "../../../components/admin/OrderCard";
 import { AutoRefresh } from "../../../components/admin/AutoRefresh";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -15,7 +16,7 @@ export default async function KitchenPage() {
   return (
     <div className="shell" style={{ paddingTop: 24 }}>
       <AutoRefresh seconds={10} />
-      <h1 className="page-title"><strong>Kitchen</strong></h1>
+      <AdminPageHeader title="Kitchen" subtitle="Tickets for the kitchen, oldest first" />
       {orders.length === 0 ? (
         <div className="empty">Nothing to cook right now.</div>
       ) : (

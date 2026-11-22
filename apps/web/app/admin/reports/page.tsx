@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { formatMinor, type Minor } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
 import { loadReport, RANGES, type RangeKey } from "../../../lib/reports-data";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
   return (
     <div>
-      <h1 className="page-title"><strong>Reports</strong></h1>
+      <AdminPageHeader title="Reports" subtitle="Sales, payments and top dishes" />
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", alignItems: "center", justifyContent: "space-between" }}>
         <nav aria-label="Date range" style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
           {RANGES.map((r) => (

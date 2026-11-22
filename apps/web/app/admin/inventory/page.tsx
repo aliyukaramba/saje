@@ -3,6 +3,7 @@ import { prisma } from "@restaurant/database";
 import { isLowStock } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
 import { createInventoryItem, restockItem, recordCount, addRecipeLine } from "./actions";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -22,7 +23,7 @@ export default async function InventoryPage({ searchParams }: { searchParams: Pr
 
   return (
     <div>
-      <h1 className="page-title"><strong>Inventory</strong></h1>
+      <AdminPageHeader title="Inventory" subtitle="Stock levels, restocks and recipes" />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {low.length > 0 ? (
         <div className="card" role="alert" style={{ borderLeft: "4px solid var(--danger)", marginTop: 12 }}>

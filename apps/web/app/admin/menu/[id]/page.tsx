@@ -4,6 +4,7 @@ import { prisma } from "@restaurant/database";
 import { parseMajorToMinor } from "@restaurant/shared";
 import { staffWith } from "../../../../lib/auth";
 import { updateProduct } from "../actions";
+import { AdminPageHeader } from "../../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -23,7 +24,7 @@ export default async function EditDishPage({ params }: { params: Promise<{ id: s
   return (
     <div>
       <p><Link href="/admin/menu" className="pill">← Back to menu</Link></p>
-      <h1 className="page-title">Edit dish</h1>
+      <AdminPageHeader title="Edit dish" subtitle="Update the name, price and details" />
       <section className="card" style={{ maxWidth: 560 }}>
         <form action={updateProduct} className="checkout-form">
           <input type="hidden" name="id" value={product.id} />

@@ -3,6 +3,7 @@ import { prisma } from "@restaurant/database";
 import { formatMinor, parseMajorToMinor, type Minor } from "@restaurant/shared";
 import { staffWith } from "../../../../lib/auth";
 import { requestBill, settleAndCloseTable } from "./actions";
+import { AdminPageHeader } from "../../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,7 @@ export default async function TableBillPage({
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
+      <AdminPageHeader title="Table bill" subtitle="Bill and payment for this table" />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
 
       {!session ? (

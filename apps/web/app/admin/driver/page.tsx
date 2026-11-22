@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
 import { markPickedUp, markDelivered, markFailed } from "./actions";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -17,7 +18,7 @@ export default async function DriverPage({ searchParams }: { searchParams: Promi
 
   return (
     <div>
-      <h1 className="page-title"><strong>My</strong> deliveries</h1>
+      <AdminPageHeader title="My deliveries" subtitle="Deliveries assigned to you" />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {mine.length === 0 ? (
         <div className="empty">No deliveries assigned to you right now.</div>

@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { formatMinor, parseMajorToMinor, type Minor } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +25,7 @@ export default async function ReceiptsPage({ searchParams }: { searchParams: Pro
 
   return (
     <div>
-      <h1 className="page-title">Receipts</h1>
+      <AdminPageHeader title="Receipts" subtitle="Find and print any receipt, or issue a refund" />
       <p className="muted">Open any receipt to print it or to issue a refund.</p>
 
       <form method="get" action="/admin/receipts" style={{ display: "flex", gap: 8, margin: "16px 0", flexWrap: "wrap" }}>

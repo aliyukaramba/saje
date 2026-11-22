@@ -3,6 +3,7 @@ import { prisma } from "@restaurant/database";
 import { formatMinor, parseMajorToMinor } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
 import { setFulfilmentSwitches, createDeliveryZone, toggleDeliveryZone } from "./actions";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -17,6 +18,7 @@ export default async function DeliveryAdminPage({ searchParams }: { searchParams
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
+      <AdminPageHeader title="Delivery" subtitle="Delivery zones and fulfilment options" />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
 
       <section className="card" style={{ marginTop: 16 }}>

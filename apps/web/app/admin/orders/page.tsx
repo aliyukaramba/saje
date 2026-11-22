@@ -3,6 +3,7 @@ import { staffWith } from "../../../lib/auth";
 import { loadOpenOrders } from "../../../lib/admin-orders";
 import { OrderCard } from "../../../components/admin/OrderCard";
 import { AutoRefresh } from "../../../components/admin/AutoRefresh";
+import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -15,6 +16,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
+      <AdminPageHeader title="Orders" subtitle="Open orders, updated as they change" />
       <AutoRefresh seconds={20} />
       {error ? <p className="form-error" role="alert">{error}</p> : null}
       {orders.length === 0 ? (

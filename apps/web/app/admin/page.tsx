@@ -3,6 +3,7 @@ import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { canAny, formatMinor, parseMajorToMinor, type Minor, type Permission } from "@restaurant/shared";
 import { staffWith } from "../../lib/auth";
+import { AdminPageHeader } from "../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
 
@@ -47,7 +48,7 @@ export default async function AdminHome() {
 
   return (
     <div>
-      <h1 className="page-title"><strong>Today</strong> at a glance</h1>
+      <AdminPageHeader title="Overview" subtitle="Today at a glance" />
 
       <div className="stat-grid">
         <section className="card stat-hero">
