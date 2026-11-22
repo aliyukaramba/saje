@@ -34,13 +34,18 @@ export function AddToCart({ id, name, price, mode = "text" }: Props) {
         aria-label={added ? `${name} added to cart` : `Add ${name} to cart`}
         title="Add to cart"
       >
-        <Icon name={added ? "check" : "plus"} size={18} />
+        <Icon name={added ? "check" : "cart"} size={18} />
       </button>
     );
   }
 
   return (
-    <button type="button" className={`btn-add${added ? " is-added" : ""}`} onClick={add} aria-live="polite">
+    <button
+      type="button"
+      className={mode === "order" ? "btn-add btn-order" : `btn-add${added ? " is-added" : ""}`}
+      onClick={add}
+      aria-live="polite"
+    >
       {mode === "order" ? "Order now" : added ? (<><span className="check" aria-hidden="true">✓</span> Added</>) : "Add to cart"}
     </button>
   );

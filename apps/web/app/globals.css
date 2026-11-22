@@ -553,3 +553,12 @@ body::after {
 @media (max-width: 639px) {
   .icon-add { width: 36px; height: 36px; }
 }
+
+/* Dish actions: small Order now beside the cart icon */
+.dish-actions { display: flex; align-items: center; gap: 8px; margin-top: 12px; }
+.dish-actions .btn-order { width: auto; margin-top: 0; min-height: 34px; padding: 6px 14px; font-size: 13px; flex: 0 0 auto; }
+.dish-actions .icon-add { margin-left: auto; }
+@media (max-width: 639px) {
+  .dish-actions { margin-top: 10px; }
+  .dish-actions .btn-order { min-height: 32px; padding: 5px 12px; font-size: 12px; }
+}
