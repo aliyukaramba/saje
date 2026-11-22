@@ -5,6 +5,7 @@ import { prisma } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
 import { createTable, issueTableLink, dismissTableLink } from "./actions";
 import { QR_ONCE_COOKIE } from "../../../lib/qr-cookie";
+import QRCode from "qrcode";
 import { AdminPageHeader } from "../../../components/admin/AdminPageHeader";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,8 @@ export default async function TablesPage({ searchParams }: { searchParams: Promi
       newLink = { number: parsed.number, url: `${base}/t/${parsed.token}` };
     } catch { /* ignore a malformed cookie */ }
   }
+  // The QR code is generated on the server from the one-time link, so the link never has to leave the page.
+  const qrSvg = newLink ? await QRCode.toString(newLink.url, { type: "svg", margin: 1, width: 220 }) : null;
   const tables = await prisma.diningTable.findMany({ orderBy: { number: "asc" } });
 
   return (
@@ -34,6 +37,15 @@ export default async function TablesPage({ searchParams }: { searchParams: Promi
         <section className="card" style={{ marginTop: 16 }}>
           <h2>New link for table {newLink.number}</h2>
           <p>Print this link as a QR code and place it on the table. It is shown only now. Issuing a new link disables this one.</p>
+          {qrSvg ? (
+            <img
+              alt={`QR code for table ${newLink.number}`}
+              width={220}
+              height={220}
+              style={{ background: "#fff", borderRadius: 12, padding: 8, display: "block", margin: "12px 0" }}
+              src={`data:image/svg+xml;utf8,${encodeURIComponent(qrSvg)}`}
+            />
+          ) : null}
           <p style={{ wordBreak: "break-all" }}><code>{newLink.url}</code></p>
           <form action={dismissTableLink}><button className="pill" type="submit">Done</button></form>
         </section>
