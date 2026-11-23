@@ -163,6 +163,48 @@ export function TopifyCheckoutModal({
                 sharedCookiesEnabled
                 thirdPartyCookiesEnabled
                 setSupportMultipleWindows={false}
+                // Checkout never needs camera, microphone, or photo uploads.
+                mediaCapturePermissionGrantType="deny"
+                // Keep Android's WebView at the normal system text scale and disable pinch zoom.
+                textZoom={100}
+                setBuiltInZoomControls={false}
+                setDisplayZoomControls={false}
+                // Normalize the hosted page's viewport for narrow mobile screens.
+                injectedJavaScriptBeforeContentLoaded={`
+                  (function () {
+                    var applyMobileViewport = function () {
+                      var head = document.head || document.getElementsByTagName('head')[0];
+                      if (!head) return;
+                      var viewport = document.querySelector('meta[name="viewport"]');
+                      if (!viewport) {
+                        viewport = document.createElement('meta');
+                        viewport.name = 'viewport';
+                        head.appendChild(viewport);
+                      }
+                      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+                    };
+                    applyMobileViewport();
+                    document.addEventListener('DOMContentLoaded', applyMobileViewport);
+                    // Block file-picker and camera/microphone access: neither is needed for checkout.
+                    document.addEventListener('click', function (event) {
+                      var target = event.target;
+                      if (target && target.closest && target.closest('input[type="file"]')) {
+                        event.preventDefault();
+                        event.stopImmediatePropagation();
+                      }
+                    }, true);
+                    var blockMediaCapture = function () {
+                      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+                        navigator.mediaDevices.getUserMedia = function () {
+                          return Promise.reject(new DOMException('Media capture is disabled in checkout.', 'NotAllowedError'));
+                        };
+                      }
+                    };
+                    blockMediaCapture();
+                    return true;
+                  })();
+                  true;
+                `}
                 allowsBackForwardNavigationGestures
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
