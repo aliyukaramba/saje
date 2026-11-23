@@ -30,7 +30,8 @@ function CapsuleTabBar({ state, descriptors, navigation }: TabBarProps) {
   return (
     <View style={styles.dock} pointerEvents="box-none">
       <View style={styles.capsule}>
-        <BlurView intensity={70} tint="light" style={StyleSheet.absoluteFill} />
+        <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
+        <View style={[StyleSheet.absoluteFill, styles.glassFill]} />
         <View style={styles.row}>
           {state.routes.map((route, index) => {
             const { options } = descriptors[route.key];
@@ -97,11 +98,12 @@ const styles = StyleSheet.create({
     borderRadius: BAR_HEIGHT / 2,
     overflow: "hidden",
     borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.7)",
-    backgroundColor: "rgba(255,255,255,0.7)",
+    borderColor: "rgba(255,255,255,0.8)",
     alignItems: "center",
     justifyContent: "center",
   },
+  // Light, see-through white over the blur, matching TopBar and the dish screen.
+  glassFill: { backgroundColor: "rgba(255,255,255,0.45)" },
   row: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
   item: { width: ITEM_WIDTH, height: BAR_HEIGHT, alignItems: "center", justifyContent: "center" },
   iconWrap: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
