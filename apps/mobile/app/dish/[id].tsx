@@ -154,14 +154,17 @@ export default function DishScreen() {
         </View>
       </ScrollView>
 
-      <BlurView intensity={80} tint="light" style={[styles.bottomBar, { paddingBottom: insets.bottom + 14 }]}>
+      {/* Floating row: no bar behind it. The glass sits on the buttons, as in the reference. */}
+      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 14 }]} pointerEvents="box-none">
         <Pressable style={styles.outlineButton} onPress={() => add(false)} accessibilityRole="button">
+          <BlurView intensity={70} tint="light" style={StyleSheet.absoluteFill} />
+          <View style={[StyleSheet.absoluteFill, styles.glassFill]} />
           <Text style={styles.outlineText}>Add to cart</Text>
         </Pressable>
         <Pressable style={styles.solidButton} onPress={() => add(true)} accessibilityRole="button">
           <Text style={styles.solidText}>Order</Text>
         </Pressable>
-      </BlurView>
+      </View>
     </View>
   );
 }
@@ -203,8 +206,10 @@ const styles = StyleSheet.create({
   relatedPhoto: { width: 116, height: 100, borderRadius: 18 },
   relatedName: { fontSize: 13, fontWeight: "600", color: colors.ink },
   relatedPrice: { fontSize: 12, fontWeight: "700", color: colors.brand },
-  bottomBar: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingTop: 14, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.6)" },
-  outlineButton: { flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: colors.ink, paddingVertical: 15, alignItems: "center", backgroundColor: colors.surface },
+  bottomBar: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingTop: 14 },
+  outlineButton: { flex: 1, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.9)", paddingVertical: 15, alignItems: "center", overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
+  // Light, see-through white over the blur, matching TopBar.
+  glassFill: { backgroundColor: "rgba(255,255,255,0.45)" },
   outlineText: { color: colors.ink, fontWeight: "700" },
   solidButton: { flex: 1, borderRadius: 999, backgroundColor: colors.ink, paddingVertical: 15, alignItems: "center" },
   solidText: { color: colors.surface, fontWeight: "700" },
