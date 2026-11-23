@@ -166,6 +166,10 @@ export function TopifyCheckoutModal({
                 // Checkout never needs camera, microphone, or photo uploads.
                 mediaCapturePermissionGrantType="deny"
                 // Keep Android's WebView at the normal system text scale and disable pinch zoom.
+                contentMode="mobile"
+                automaticallyAdjustContentInsets={false}
+                contentInsetAdjustmentBehavior="never"
+                bounces={false}
                 textZoom={100}
                 setBuiltInZoomControls={false}
                 setDisplayZoomControls={false}
@@ -181,10 +185,18 @@ export function TopifyCheckoutModal({
                         viewport.name = 'viewport';
                         head.appendChild(viewport);
                       }
-                      viewport.setAttribute('content', 'width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover');
+                      viewport.setAttribute('content', 'width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover');
+                      var style = document.getElementById('saje-mobile-checkout-style');
+                      if (!style) {
+                        style = document.createElement('style');
+                        style.id = 'saje-mobile-checkout-style';
+                        style.textContent = 'html,body{width:100%!important;max-width:100%!important;min-width:0!important;margin:0!important;overflow-x:hidden!important;-webkit-text-size-adjust:100%!important}*,*:before,*:after{box-sizing:border-box}';
+                        head.appendChild(style);
+                      }
                     };
                     applyMobileViewport();
                     document.addEventListener('DOMContentLoaded', applyMobileViewport);
+                    window.addEventListener('load', applyMobileViewport);
                     // Block file-picker and camera/microphone access: neither is needed for checkout.
                     document.addEventListener('click', function (event) {
                       var target = event.target;
