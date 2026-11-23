@@ -135,115 +135,213 @@ export default function CartScreen() {
 
   if (lines.length === 0) {
     return (
-      <ScrollView contentContainerStyle={styles.content}>
-        <View style={styles.card}>
-          <Text style={styles.muted}>{message ?? "Your cart is empty. Add dishes from the menu."}</Text>
-          <Pressable style={styles.solid} onPress={() => (message ? router.push("/orders") : router.push("/"))} accessibilityRole="button">
-            <Text style={styles.solidText}>{message ? "View my orders" : "Back to the menu"}</Text>
-          </Pressable>
+      <ScrollView contentContainerStyle={styles.emptyContent}>
+        <View style={styles.emptyIllustration}>
+          <Ionicons name="bag-handle-outline" size={42} color={colors.brand} />
         </View>
+        <Text style={styles.emptyTitle}>{message ? "Order received" : "Your bag is waiting"}</Text>
+        <Text style={styles.emptyDescription}>
+          {message ?? "Looks like you haven't added anything yet. Explore the menu and find something delicious."}
+        </Text>
+        <Pressable style={styles.primaryButton} onPress={() => (message ? router.push("/orders") : router.push("/"))} accessibilityRole="button">
+          <Text style={styles.primaryButtonText}>{message ? "Track my order" : "Explore the menu"}</Text>
+          <Ionicons name="arrow-forward" size={18} color={colors.surface} />
+        </Pressable>
         {checkoutModal}
       </ScrollView>
     );
   }
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
-      <Text style={styles.section}>Your cart</Text>
-      {lines.map((l) => (
-        <SwipeRow key={l.lineKey} onDelete={() => removeLine(l.lineKey)}>
-        <View style={styles.line}>
-          {l.imageUrl ? <Image source={{ uri: l.imageUrl }} style={styles.thumb} /> : <View style={[styles.thumb, { backgroundColor: colors.line }]} />}
-          <View style={{ flex: 1, gap: 4 }}>
-            <Text style={styles.name} numberOfLines={1}>{l.name}</Text>
-            {l.optionLabel ? <Text style={styles.muted} numberOfLines={2}>{l.optionLabel}</Text> : null}
-            <Text style={styles.price}>{formatKobo(l.unitMinor * l.quantity)}</Text>
-          </View>
-          <View style={{ alignItems: "flex-end", gap: 8 }}>
-            <View style={styles.stepper}>
-              <Pressable onPress={() => changeQuantity(l.lineKey, -1)} style={styles.stepButton} accessibilityLabel={`Remove one ${l.name}`}>
-                <Text style={styles.stepSign}>−</Text>
-              </Pressable>
-              <Text style={styles.stepText}>{l.quantity}</Text>
-              <Pressable onPress={() => changeQuantity(l.lineKey, 1)} style={styles.stepButton} accessibilityLabel={`Add one ${l.name}`}>
-                <Text style={styles.stepSign}>+</Text>
-              </Pressable>
-            </View>
-          </View>
+    <ScrollView contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <View style={styles.intro}>
+        <View>
+          <Text style={styles.eyebrow}>SAJE • ORDERING</Text>
+          <Text style={styles.pageTitle}>Your order</Text>
+          <Text style={styles.introCopy}>A few details and your favourites will be on their way.</Text>
         </View>
-        </SwipeRow>
-      ))}
-
-      <View style={styles.card}>
-        <Text style={styles.section}>Order Summary</Text>
-        <View style={styles.totalRow}>
-          <Text style={styles.muted}>Subtotal</Text>
-          <Text style={styles.name}>{formatKobo(subtotal)}</Text>
+        <View style={styles.itemCount}>
+          <Ionicons name="bag-handle-outline" size={17} color={colors.brand} />
+          <Text style={styles.itemCountText}>{lines.reduce((sum, line) => sum + line.quantity, 0)} items</Text>
         </View>
-        {mode === "DELIVERY" && zone ? (
-          <View style={styles.totalRow}>
-            <Text style={styles.muted}>Delivery to {zone.name}</Text>
-            <Text style={styles.name}>{formatKobo(feeKobo)}</Text>
-          </View>
-        ) : null}
-        <View style={[styles.totalRow, { borderTopWidth: 1, borderTopColor: colors.line, paddingTop: 10 }]}>
-          <Text style={styles.name}>Total</Text>
-          <Text style={styles.price}>{formatKobo(subtotal + feeKobo)}</Text>
-        </View>
-        <Text style={styles.muted}>Final prices are confirmed on the payment page.</Text>
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.section}>How do you want it?</Text>
-        {optionsLoading ? <Text style={styles.muted}>Loading ordering options…</Text> : null}
+      <View style={styles.sectionHeading}>
+        <Text style={styles.sectionTitle}>Your selection</Text>
+        <Text style={styles.sectionMeta}>{lines.length} {lines.length === 1 ? "dish" : "dishes"}</Text>
+      </View>
+      <View style={styles.itemsCard}>
+        {lines.map((l, index) => (
+          <View key={l.lineKey}>
+            {index > 0 ? <View style={styles.itemDivider} /> : null}
+            <SwipeRow onDelete={() => removeLine(l.lineKey)}>
+              <View style={styles.line}>
+                {l.imageUrl ? (
+                  <Image source={{ uri: l.imageUrl }} style={styles.thumb} />
+                ) : (
+                  <View style={[styles.thumb, styles.thumbFallback]}>
+                    <Ionicons name="restaurant-outline" size={25} color={colors.muted} />
+                  </View>
+                )}
+                <View style={styles.lineInfo}>
+                  <Text style={styles.name} numberOfLines={2}>{l.name}</Text>
+                  {l.optionLabel ? <Text style={styles.optionLabel} numberOfLines={2}>{l.optionLabel}</Text> : null}
+                  <Text style={styles.price}>{formatKobo(l.unitMinor * l.quantity)}</Text>
+                </View>
+                <View style={styles.stepper}>
+                  <Pressable onPress={() => changeQuantity(l.lineKey, -1)} style={styles.stepButton} accessibilityRole="button" accessibilityLabel={`Remove one ${l.name}`}>
+                    <Ionicons name="remove" size={16} color={colors.ink} />
+                  </Pressable>
+                  <Text style={styles.stepText}>{l.quantity}</Text>
+                  <Pressable onPress={() => changeQuantity(l.lineKey, 1)} style={styles.stepButton} accessibilityRole="button" accessibilityLabel={`Add one ${l.name}`}>
+                    <Ionicons name="add" size={16} color={colors.ink} />
+                  </Pressable>
+                </View>
+              </View>
+            </SwipeRow>
+          </View>
+        ))}
+        <Text style={styles.swipeHint}><Ionicons name="arrow-back" size={12} color={colors.muted} /> Swipe a dish left to remove it</Text>
+      </View>
+
+      <View style={styles.sectionHeading}>
+        <Text style={styles.sectionTitle}>Fulfilment</Text>
+        <Text style={styles.sectionMeta}>How would you like it?</Text>
+      </View>
+      <View style={styles.panel}>
+        {optionsLoading ? <InlineNotice icon="time-outline" text="Loading pickup and delivery options…" /> : null}
         {optionsError ? (
-          <View style={{ gap: 8 }}>
-            <Text style={styles.error}>We could not load pickup and delivery options. {optionsError}</Text>
-            <Pressable style={styles.retryOptions} onPress={() => setOptionsRetry((value) => value + 1)} accessibilityRole="button">
-              <Text style={styles.retryOptionsText}>Try again</Text>
+          <View style={styles.noticeError}>
+            <Text style={styles.error}>{optionsError}</Text>
+            <Pressable style={styles.retryButton} onPress={() => setOptionsRetry((value) => value + 1)} accessibilityRole="button">
+              <Text style={styles.retryButtonText}>Try again</Text>
             </Pressable>
           </View>
         ) : null}
         {!optionsLoading && !optionsError && options && !options.pickupEnabled && !options.deliveryEnabled ? (
-          <Text style={styles.error}>Online ordering is currently unavailable. Please try again later.</Text>
+          <InlineNotice icon="alert-circle-outline" text="Online ordering is currently unavailable. Please try again later." danger />
         ) : null}
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          {options?.pickupEnabled ? <Segment label="Pickup" active={mode === "PICKUP"} onPress={() => setMode("PICKUP")} /> : null}
-          {options?.deliveryEnabled ? <Segment label="Delivery" active={mode === "DELIVERY"} onPress={() => setMode("DELIVERY")} /> : null}
+        <View style={styles.modeRow}>
+          {options?.pickupEnabled ? (
+            <ModeOption icon="storefront-outline" title="Pickup" subtitle="Collect in person" active={mode === "PICKUP"} onPress={() => setMode("PICKUP")} />
+          ) : null}
+          {options?.deliveryEnabled ? (
+            <ModeOption icon="bicycle-outline" title="Delivery" subtitle="To your doorstep" active={mode === "DELIVERY"} onPress={() => setMode("DELIVERY")} />
+          ) : null}
         </View>
-
         {mode === "PICKUP" ? (
-          <Text style={styles.muted}>Ready in about {PICKUP_MINUTES} minutes after payment.</Text>
+          <View style={styles.infoStrip}>
+            <Ionicons name="time-outline" size={17} color={colors.brand} />
+            <Text style={styles.infoText}>Your order should be ready in about {PICKUP_MINUTES} minutes after payment.</Text>
+          </View>
         ) : (
-          <View style={{ gap: 10 }}>
-            <Text style={styles.label}>Delivery area</Text>
-            {options?.zones.map((z) => (
-              <Segment key={z.id} label={`${z.name} · ${formatKobo(nairaToKobo(z.fee))}`} active={zoneId === z.id} onPress={() => setZoneId(z.id)} />
-            ))}
-            {zone ? <Text style={styles.muted}>Minimum order {formatKobo(minKobo)}</Text> : null}
+          <View style={styles.formStack}>
+            <Text style={styles.fieldGroupTitle}>Choose your delivery area</Text>
+            <View style={styles.zoneList}>
+              {options?.zones.map((z) => (
+                <Pressable key={z.id} onPress={() => setZoneId(z.id)} accessibilityRole="radio" accessibilityState={{ checked: zoneId === z.id }} style={[styles.zoneOption, zoneId === z.id && styles.zoneOptionActive]}>
+                  <View style={styles.zoneCopy}>
+                    <Text style={[styles.zoneName, zoneId === z.id && styles.zoneNameActive]}>{z.name}</Text>
+                    <Text style={[styles.zoneFee, zoneId === z.id && styles.zoneFeeActive]}>Delivery fee · {formatKobo(nairaToKobo(z.fee))}</Text>
+                  </View>
+                  <Ionicons name={zoneId === z.id ? "checkmark-circle" : "ellipse-outline"} size={21} color={zoneId === z.id ? colors.brand : colors.muted} />
+                </Pressable>
+              ))}
+            </View>
+            {zone ? <Text style={styles.helperText}>Minimum order for this area: {formatKobo(minKobo)}</Text> : null}
+            <Text style={styles.fieldGroupTitle}>Delivery address</Text>
             <Field label="Street address" value={address.line1} onChangeText={(v) => setAddress({ ...address, line1: v })} />
-            <Field label="City" value={address.city} onChangeText={(v) => setAddress({ ...address, city: v })} />
-            <Field label="State" value={address.state} onChangeText={(v) => setAddress({ ...address, state: v })} />
+            <View style={styles.fieldRow}>
+              <View style={{ flex: 1 }}>
+                <Field label="City" value={address.city} onChangeText={(v) => setAddress({ ...address, city: v })} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Field label="State" value={address.state} onChangeText={(v) => setAddress({ ...address, state: v })} />
+              </View>
+            </View>
             <Field label="Landmark (optional)" value={address.landmark} onChangeText={(v) => setAddress({ ...address, landmark: v })} />
             <Field label="Delivery instructions (optional)" value={address.instructions} onChangeText={(v) => setAddress({ ...address, instructions: v })} />
           </View>
         )}
       </View>
 
-      <View style={styles.card}>
-        <Text style={styles.section}>Your details</Text>
-        <Field label="Your name" value={name} onChangeText={setName} autoCapitalize="words" />
-        <Field label="Phone" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
-        <Field label="Email for your receipt" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
+      <View style={styles.sectionHeading}>
+        <Text style={styles.sectionTitle}>Contact details</Text>
+        <Text style={styles.sectionMeta}>For order updates</Text>
+      </View>
+      <View style={styles.panel}>
+        <Field label="Full name" value={name} onChangeText={setName} autoCapitalize="words" />
+        <Field label="Phone number" value={phone} onChangeText={setPhone} keyboardType="phone-pad" />
+        <Field label="Email address" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" />
       </View>
 
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Pressable style={[styles.checkout, (busy || !canOrder) && styles.disabled]} disabled={busy || !canOrder} onPress={placeOrder} accessibilityRole="button">
-        <Text style={styles.solidText}>{busy ? "Starting payment…" : optionsLoading ? "Loading ordering options…" : optionsError ? "Ordering options unavailable" : canOrder ? "Checkout" : "Ordering is closed right now"}</Text>
+      <View style={styles.summaryCard}>
+        <View style={styles.summaryHeader}>
+          <View>
+            <Text style={styles.summaryTitle}>Order summary</Text>
+            <Text style={styles.summarySubtitle}>A clear breakdown of your total</Text>
+          </View>
+          <View style={styles.summaryIcon}><Ionicons name="receipt-outline" size={19} color={colors.brand} /></View>
+        </View>
+        <View style={styles.summaryRow}>
+          <Text style={styles.summaryLabel}>Subtotal</Text>
+          <Text style={styles.summaryValue}>{formatKobo(subtotal)}</Text>
+        </View>
+        {mode === "DELIVERY" && zone ? (
+          <View style={styles.summaryRow}>
+            <Text style={styles.summaryLabel}>Delivery · {zone.name}</Text>
+            <Text style={styles.summaryValue}>{formatKobo(feeKobo)}</Text>
+          </View>
+        ) : null}
+        <View style={styles.summaryDivider} />
+        <View style={styles.totalRow}>
+          <View>
+            <Text style={styles.totalLabel}>Total to pay</Text>
+            <Text style={styles.totalNote}>Final amount confirmed at payment</Text>
+          </View>
+          <Text style={styles.totalAmount}>{formatKobo(subtotal + feeKobo)}</Text>
+        </View>
+      </View>
+
+      {error ? <View style={styles.formError}><Ionicons name="alert-circle" size={18} color={colors.danger} /><Text style={styles.error}>{error}</Text></View> : null}
+      {message ? <Text style={styles.successMessage}>{message}</Text> : null}
+      <Pressable style={[styles.checkoutButton, (busy || !canOrder) && styles.disabled]} disabled={busy || !canOrder} onPress={placeOrder} accessibilityRole="button">
+        <View style={styles.checkoutButtonCopy}>
+          <Text style={styles.checkoutButtonTitle}>{busy ? "Preparing checkout…" : optionsLoading ? "Loading options…" : optionsError ? "Checkout unavailable" : canOrder ? "Continue to secure payment" : "Ordering is closed"}</Text>
+          <Text style={styles.checkoutButtonSubtitle}>Powered by Topify</Text>
+        </View>
+        <View style={styles.checkoutArrow}><Ionicons name="arrow-forward" size={20} color={colors.ink} /></View>
       </Pressable>
-      {message ? <Text style={styles.muted}>{message}</Text> : null}
+      <View style={styles.secureNote}>
+        <Ionicons name="lock-closed-outline" size={13} color={colors.muted} />
+        <Text style={styles.secureNoteText}>Your payment is processed securely. SAJE never stores your card details.</Text>
+      </View>
       {checkoutModal}
     </ScrollView>
+  );
+}
+
+function InlineNotice({ icon, text, danger = false }: { icon: React.ComponentProps<typeof Ionicons>["name"]; text: string; danger?: boolean }) {
+  return (
+    <View style={[styles.infoStrip, danger && styles.dangerStrip]}>
+      <Ionicons name={icon} size={17} color={danger ? colors.danger : colors.brand} />
+      <Text style={[styles.infoText, danger && { color: colors.danger }]}>{text}</Text>
+    </View>
+  );
+}
+
+function ModeOption({ icon, title, subtitle, active, onPress }: { icon: React.ComponentProps<typeof Ionicons>["name"]; title: string; subtitle: string; active: boolean; onPress: () => void }) {
+  return (
+    <Pressable onPress={onPress} accessibilityRole="radio" accessibilityState={{ checked: active }} style={[styles.modeOption, active && styles.modeOptionActive]}>
+      <View style={[styles.modeIcon, active && styles.modeIconActive]}>
+        <Ionicons name={icon} size={20} color={active ? colors.surface : colors.ink} />
+      </View>
+      <View style={{ flex: 1, gap: 3 }}>
+        <Text style={styles.modeTitle}>{title}</Text>
+        <Text style={styles.modeSubtitle}>{subtitle}</Text>
+      </View>
+      <Ionicons name={active ? "checkmark-circle" : "ellipse-outline"} size={20} color={active ? colors.brand : colors.muted} />
+    </Pressable>
   );
 }
 
@@ -255,48 +353,101 @@ function Field({ label, value, onChangeText, ...rest }: {
   autoCapitalize?: "none" | "words" | "sentences";
 }) {
   return (
-    <View style={{ gap: 6 }}>
-      <Text style={styles.label}>{label}</Text>
-      <TextInput style={styles.input} value={value} onChangeText={onChangeText} placeholderTextColor={colors.muted} {...rest} />
+    <View style={styles.field}>
+      <Text style={styles.fieldLabel}>{label}</Text>
+      <TextInput
+        style={styles.input}
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={label}
+        placeholderTextColor={colors.muted}
+        selectionColor={colors.brand}
+        {...rest}
+      />
     </View>
   );
 }
 
-function Segment({ label, active, onPress }: { label: string; active: boolean; onPress: () => void }) {
-  return (
-    <Pressable onPress={onPress} accessibilityRole="button" style={[styles.segment, active && styles.segmentActive]}>
-      <Text style={[styles.segmentText, active && { color: colors.surface }]}>{label}</Text>
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
-  content: { padding: 16, gap: 14, backgroundColor: colors.canvas, paddingBottom: 140 },
-  section: { fontSize: 18, fontWeight: "800", color: colors.ink },
-  card: { backgroundColor: colors.surface, borderRadius: 20, padding: 16, gap: 12, borderWidth: 1, borderColor: colors.line },
-  line: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, borderRadius: 24, padding: 10, borderWidth: 1, borderColor: colors.line },
-  thumb: { width: 80, height: 80, borderRadius: 18 },
-  trash: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: "#fdecea" },
-  checkout: { backgroundColor: colors.ink, borderRadius: 999, paddingVertical: 16, alignItems: "center", marginTop: 4 },
-  name: { fontSize: 16, fontWeight: "700", color: colors.ink },
-  price: { fontSize: 15, fontWeight: "800", color: colors.brand },
-  totalRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
-  label: { color: colors.ink, fontWeight: "600" },
-  muted: { color: colors.muted, fontSize: 14 },
-  stepper: { flexDirection: "row", alignItems: "center", gap: 10 },
-  stepButton: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
-  stepText: { fontSize: 15, fontWeight: "700", color: colors.ink, minWidth: 14, textAlign: "center" },
-  // The +/− sit on the dark button, so they must be light (previously dark on dark).
-  stepSign: { fontSize: 18, fontWeight: "700", color: colors.surface, lineHeight: 20, textAlign: "center" },
-  remove: { color: colors.danger, fontWeight: "600", fontSize: 13 },
-  input: { borderWidth: 1, borderColor: colors.line, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, fontSize: 16, color: colors.ink, backgroundColor: colors.surface },
-  segment: { flex: 1, borderRadius: 999, borderWidth: 1, borderColor: colors.line, paddingVertical: 10, alignItems: "center" },
-  segmentActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-  segmentText: { color: colors.ink, fontWeight: "600" },
-  solid: { backgroundColor: colors.brand, borderRadius: 999, paddingVertical: 15, alignItems: "center" },
-  solidText: { color: colors.brandInk, fontWeight: "700", fontSize: 16 },
-  disabled: { opacity: 0.6 },
-  retryOptions: { alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 16, paddingVertical: 9, backgroundColor: colors.ink },
-  retryOptionsText: { color: colors.surface, fontWeight: "700" },
-  error: { color: colors.danger, fontSize: 14 },
+  content: { paddingHorizontal: 18, paddingTop: 12, paddingBottom: 160, gap: 16, backgroundColor: colors.canvas },
+  intro: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, paddingTop: 4, paddingBottom: 4 },
+  eyebrow: { color: colors.brand, fontSize: 10, fontWeight: "800", letterSpacing: 1.7, marginBottom: 7 },
+  pageTitle: { color: colors.ink, fontSize: 29, fontWeight: "800", letterSpacing: -0.8 },
+  introCopy: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 5, maxWidth: 240 },
+  itemCount: { flexDirection: "row", alignItems: "center", gap: 6, backgroundColor: "#e7efed", borderRadius: 999, paddingHorizontal: 11, paddingVertical: 8 },
+  itemCountText: { color: colors.brand, fontSize: 12, fontWeight: "700" },
+  sectionHeading: { flexDirection: "row", alignItems: "baseline", justifyContent: "space-between", marginTop: 3 },
+  sectionTitle: { color: colors.ink, fontSize: 17, fontWeight: "800", letterSpacing: -0.2 },
+  sectionMeta: { color: colors.muted, fontSize: 11, fontWeight: "600" },
+  itemsCard: { backgroundColor: colors.surface, borderRadius: 22, padding: 12, borderWidth: 1, borderColor: colors.line, gap: 2 },
+  itemDivider: { height: 1, backgroundColor: colors.line, marginHorizontal: 4, marginVertical: 9 },
+  line: { flexDirection: "row", alignItems: "center", gap: 11, backgroundColor: colors.surface, paddingVertical: 5, paddingHorizontal: 2 },
+  thumb: { width: 76, height: 76, borderRadius: 17, backgroundColor: colors.canvas },
+  thumbFallback: { alignItems: "center", justifyContent: "center" },
+  lineInfo: { flex: 1, gap: 4, minWidth: 0 },
+  name: { fontSize: 14, fontWeight: "750", color: colors.ink },
+  optionLabel: { color: colors.muted, fontSize: 11, lineHeight: 15 },
+  price: { fontSize: 14, fontWeight: "800", color: colors.brand, marginTop: 2 },
+  stepper: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.canvas, borderRadius: 999, padding: 4 },
+  stepButton: { width: 27, height: 27, borderRadius: 14, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, alignItems: "center", justifyContent: "center" },
+  stepText: { color: colors.ink, fontSize: 13, fontWeight: "800", minWidth: 12, textAlign: "center" },
+  swipeHint: { color: colors.muted, fontSize: 10, textAlign: "right", paddingTop: 9, paddingRight: 4 },
+  panel: { backgroundColor: colors.surface, borderRadius: 22, padding: 16, borderWidth: 1, borderColor: colors.line, gap: 14 },
+  modeRow: { flexDirection: "row", gap: 9 },
+  modeOption: { flex: 1, minWidth: 0, flexDirection: "row", alignItems: "center", gap: 8, padding: 10, borderRadius: 16, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
+  modeOptionActive: { borderColor: colors.brand, backgroundColor: "#f0f6f4" },
+  modeIcon: { width: 34, height: 34, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: colors.canvas },
+  modeIconActive: { backgroundColor: colors.brand },
+  modeTitle: { color: colors.ink, fontSize: 12, fontWeight: "800" },
+  modeSubtitle: { color: colors.muted, fontSize: 9, lineHeight: 12 },
+  infoStrip: { flexDirection: "row", alignItems: "flex-start", gap: 9, backgroundColor: "#edf4f2", borderRadius: 13, padding: 12 },
+  dangerStrip: { backgroundColor: "#fdf0ef" },
+  infoText: { flex: 1, color: colors.brand, fontSize: 12, lineHeight: 17 },
+  formStack: { gap: 12 },
+  fieldGroupTitle: { color: colors.ink, fontSize: 13, fontWeight: "800", marginTop: 2 },
+  zoneList: { gap: 8 },
+  zoneOption: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", padding: 12, borderRadius: 14, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
+  zoneOptionActive: { borderColor: colors.brand, backgroundColor: "#f0f6f4" },
+  zoneCopy: { gap: 4 },
+  zoneName: { color: colors.ink, fontSize: 13, fontWeight: "700" },
+  zoneNameActive: { color: colors.brand },
+  zoneFee: { color: colors.muted, fontSize: 11 },
+  zoneFeeActive: { color: colors.brand },
+  helperText: { color: colors.brand, fontSize: 11, fontWeight: "600" },
+  fieldRow: { flexDirection: "row", gap: 10 },
+  field: { gap: 6 },
+  fieldLabel: { color: colors.ink, fontSize: 11, fontWeight: "700" },
+  input: { borderWidth: 1, borderColor: colors.line, borderRadius: 13, paddingHorizontal: 13, paddingVertical: 12, fontSize: 14, color: colors.ink, backgroundColor: "#fbfbfc" },
+  summaryCard: { backgroundColor: colors.surface, borderRadius: 22, padding: 17, borderWidth: 1, borderColor: colors.line, gap: 14 },
+  summaryHeader: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginBottom: 2 },
+  summaryTitle: { color: colors.ink, fontSize: 17, fontWeight: "800" },
+  summarySubtitle: { color: colors.muted, fontSize: 11, marginTop: 3 },
+  summaryIcon: { width: 38, height: 38, borderRadius: 13, backgroundColor: "#eaf1ef", alignItems: "center", justifyContent: "center" },
+  summaryRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  summaryLabel: { color: colors.muted, fontSize: 13 },
+  summaryValue: { color: colors.ink, fontSize: 13, fontWeight: "700" },
+  summaryDivider: { height: 1, backgroundColor: colors.line },
+  totalRow: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 8 },
+  totalLabel: { color: colors.ink, fontSize: 14, fontWeight: "800" },
+  totalNote: { color: colors.muted, fontSize: 10, marginTop: 3 },
+  totalAmount: { color: colors.brand, fontSize: 20, fontWeight: "900" },
+  checkoutButton: { flexDirection: "row", alignItems: "center", justifyContent: "space-between", backgroundColor: colors.ink, borderRadius: 18, paddingVertical: 13, paddingHorizontal: 16, marginTop: 1 },
+  checkoutButtonCopy: { flex: 1, gap: 4 },
+  checkoutButtonTitle: { color: colors.surface, fontSize: 14, fontWeight: "800" },
+  checkoutButtonSubtitle: { color: "rgba(255,255,255,0.6)", fontSize: 10 },
+  checkoutArrow: { width: 40, height: 40, borderRadius: 14, backgroundColor: colors.surface, alignItems: "center", justifyContent: "center" },
+  secureNote: { flexDirection: "row", justifyContent: "center", alignItems: "center", gap: 6, paddingHorizontal: 8 },
+  secureNoteText: { color: colors.muted, fontSize: 10, textAlign: "center", lineHeight: 15, flex: 1 },
+  formError: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: "#fdf0ef", borderRadius: 13, padding: 12 },
+  error: { color: colors.danger, fontSize: 12, lineHeight: 17, flex: 1 },
+  successMessage: { color: colors.brand, fontSize: 12, lineHeight: 18, textAlign: "center" },
+  retryButton: { alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 15, paddingVertical: 9, backgroundColor: colors.ink },
+  retryButtonText: { color: colors.surface, fontWeight: "700", fontSize: 12 },
+  disabled: { opacity: 0.5 },
+  emptyContent: { flexGrow: 1, alignItems: "center", justifyContent: "center", padding: 28, gap: 13, backgroundColor: colors.canvas, paddingBottom: 150 },
+  emptyIllustration: { width: 92, height: 92, borderRadius: 30, backgroundColor: "#e7efed", alignItems: "center", justifyContent: "center", marginBottom: 6 },
+  emptyTitle: { color: colors.ink, fontSize: 23, fontWeight: "900", textAlign: "center", letterSpacing: -0.5 },
+  emptyDescription: { color: colors.muted, fontSize: 13, lineHeight: 20, textAlign: "center", maxWidth: 280, marginBottom: 8 },
+  primaryButton: { flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 10, backgroundColor: colors.brand, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 15, minWidth: 210 },
+  primaryButtonText: { color: colors.surface, fontSize: 14, fontWeight: "800" },
 });
