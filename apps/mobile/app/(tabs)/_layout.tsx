@@ -1,41 +1,43 @@
 import { Tabs } from "expo-router";
+import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { TopBar } from "../../components/TopBar";
-import { useCart } from "../../src/cart";
 import { colors } from "../../src/theme";
 
-export default function TabsLayout() {
-  const cart = useCart();
-  const count = cart.reduce((sum, l) => sum + l.quantity, 0);
+type IconName = React.ComponentProps<typeof Ionicons>["name"];
 
+/** Floating frosted-glass capsule. The active tab sits in a dark circle, as in the reference. */
+function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
+  return (
+    <View style={[styles.iconWrap, focused && styles.iconActive]}>
+      <Ionicons name={name} size={22} color={focused ? colors.surface : colors.ink} />
+    </View>
+  );
+}
+
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
         header: ({ options }) => <TopBar title={typeof options.title === "string" ? options.title : ""} />,
         tabBarShowLabel: false,
-        tabBarActiveTintColor: colors.brand,
-        tabBarInactiveTintColor: colors.muted,
         tabBarStyle: styles.bar,
+        tabBarBackground: () => <BlurView intensity={70} tint="light" style={[StyleSheet.absoluteFill, styles.glass]} />,
         tabBarItemStyle: styles.item,
       }}
     >
       <Tabs.Screen
         name="index"
-        options={{ title: "Menu", tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "restaurant" : "restaurant-outline"} size={24} color={color as string} /> }}
+        options={{ title: "Menu", tabBarIcon: ({ focused }) => <TabIcon name={focused ? "restaurant" : "restaurant-outline"} focused={focused} /> }}
       />
       <Tabs.Screen
         name="cart"
-        options={{
-          title: "Your order",
-          tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "bag-handle" : "bag-handle-outline"} size={24} color={color as string} />,
-          tabBarBadge: count > 0 ? count : undefined,
-          tabBarBadgeStyle: { backgroundColor: colors.brand, color: colors.brandInk },
-        }}
+        options={{ title: "Your order", tabBarIcon: ({ focused }) => <TabIcon name={focused ? "bag-handle" : "bag-handle-outline"} focused={focused} /> }}
       />
       <Tabs.Screen
         name="orders"
-        options={{ title: "My orders", tabBarIcon: ({ color, focused }) => <Ionicons name={focused ? "receipt" : "receipt-outline"} size={24} color={color as string} /> }}
+        options={{ title: "My orders", tabBarIcon: ({ focused }) => <TabIcon name={focused ? "receipt" : "receipt-outline"} focused={focused} /> }}
       />
     </Tabs>
   );
@@ -44,18 +46,20 @@ export default function TabsLayout() {
 const styles = StyleSheet.create({
   bar: {
     position: "absolute",
-    left: 24,
-    right: 24,
-    bottom: 24,
-    height: 66,
-    borderRadius: 33,
-    backgroundColor: colors.surface,
+    left: 40,
+    right: 40,
+    bottom: 26,
+    height: 70,
+    borderRadius: 35,
     borderTopWidth: 0,
-    elevation: 8,
-    shadowColor: "#000",
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
+    backgroundColor: "transparent",
+    elevation: 0,
+    overflow: "hidden",
+    borderWidth: 1,
+    borderColor: "rgba(255,255,255,0.7)",
   },
-  item: { paddingTop: 14 },
+  glass: { backgroundColor: "rgba(255,255,255,0.55)" },
+  item: { alignItems: "center", justifyContent: "center", paddingTop: 0 },
+  iconWrap: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
+  iconActive: { backgroundColor: colors.ink },
 });

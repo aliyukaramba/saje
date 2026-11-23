@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Stack, router, useLocalSearchParams } from "expo-router";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { BlurView } from "expo-blur";
 import { fetchMenu, type MenuItem, type OptionGroup } from "../../src/api";
 import { addLine } from "../../src/cart";
 import { useOptionChoice } from "../../src/options";
 import { formatKobo } from "../../src/money";
 import { colors } from "../../src/theme";
+import { GlassButton } from "../../components/TopBar";
+
+const PHOTO_HEIGHT = Dimensions.get("window").height * 0.52;
 
 export default function DishScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
+  const insets = useSafeAreaInsets();
   const [item, setItem] = useState<MenuItem | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -28,10 +34,10 @@ export default function DishScreen() {
     return <View style={styles.centered}><Text style={styles.muted}>This dish is no longer available.</Text></View>;
   }
   if (!item) {
-    return <View style={styles.centered}><ActivityIndicator color={colors.brand} /></View>;
+    return <View style={styles.centered}><ActivityIndicator color={colors.ink} /></View>;
   }
 
-  // Split the name: first word bold, the rest light, as in the reference design.
+  // First word bold, the rest light, as in the reference.
   const [first, ...rest] = item.name.split(" ");
 
   function add(thenOpenCart: boolean) {
@@ -47,21 +53,27 @@ export default function DishScreen() {
 
   return (
     <View style={styles.screen}>
-      <Stack.Screen options={{ title: "" }} />
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }}>
-        {item.imageUrl ? (
-          <Image source={{ uri: item.imageUrl }} style={styles.photo} />
-        ) : (
-          <View style={[styles.photo, styles.photoEmpty]} />
-        )}
+      <Stack.Screen options={{ headerShown: false }} />
 
-        <View style={styles.body}>
+      {item.imageUrl ? (
+        <Image source={{ uri: item.imageUrl }} style={styles.photo} />
+      ) : (
+        <View style={[styles.photo, { backgroundColor: colors.line }]} />
+      )}
+
+      <View style={[styles.topButtons, { paddingTop: insets.top + 8 }]}>
+        <GlassButton icon="chevron-back" label="Back" onPress={() => router.back()} />
+      </View>
+
+      <ScrollView contentContainerStyle={{ paddingTop: PHOTO_HEIGHT - 36, paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
+        <View style={styles.sheet}>
+          <View style={styles.handle} />
           <View style={styles.titleRow}>
             <Text style={styles.title} numberOfLines={2}>
               <Text style={styles.titleBold}>{first}</Text>
               {rest.length ? <Text style={styles.titleLight}> {rest.join(" ")}</Text> : null}
             </Text>
-            <Text style={styles.price}>{item.discountPrice ?? item.price}</Text>
+            <Text style={styles.price}>{formatKobo(choice.unitMinor)}</Text>
           </View>
           {item.description ? <Text style={styles.description}>{item.description}</Text> : null}
 
@@ -107,18 +119,14 @@ export default function DishScreen() {
         </View>
       </ScrollView>
 
-      <View style={styles.bottomBar}>
-        <View style={{ flex: 1 }}>
-          <Text style={styles.muted}>Total</Text>
-          <Text style={styles.totalText}>{formatKobo(choice.unitMinor)}</Text>
-        </View>
+      <BlurView intensity={80} tint="light" style={[styles.bottomBar, { paddingBottom: insets.bottom + 14 }]}>
         <Pressable style={styles.outlineButton} onPress={() => add(false)} accessibilityRole="button">
           <Text style={styles.outlineText}>Add to cart</Text>
         </Pressable>
         <Pressable style={styles.solidButton} onPress={() => add(true)} accessibilityRole="button">
           <Text style={styles.solidText}>Order</Text>
         </Pressable>
-      </View>
+      </BlurView>
     </View>
   );
 }
@@ -139,9 +147,10 @@ function Pill({ label, selected, disabled, onPress }: { label: string; selected:
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.canvas },
   centered: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: colors.canvas },
-  photo: { width: "100%", height: 320, backgroundColor: colors.line, borderBottomLeftRadius: 28, borderBottomRightRadius: 28 },
-  photoEmpty: { backgroundColor: colors.line },
-  body: { padding: 20, gap: 16 },
+  photo: { position: "absolute", top: 0, left: 0, right: 0, height: PHOTO_HEIGHT },
+  topButtons: { position: "absolute", top: 0, left: 16, right: 16, flexDirection: "row", justifyContent: "space-between" },
+  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 22, paddingTop: 12, gap: 16, minHeight: "100%" },
+  handle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: colors.line, marginBottom: 4 },
   titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 },
   title: { flex: 1, fontSize: 26, color: colors.ink },
   titleBold: { fontWeight: "800" },
@@ -155,10 +164,9 @@ const styles = StyleSheet.create({
   pillSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
   pillText: { color: colors.ink, fontWeight: "600", fontSize: 14 },
   error: { color: colors.danger, fontSize: 14 },
-  bottomBar: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", alignItems: "center", gap: 10, padding: 16, paddingBottom: 28, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: colors.line },
-  totalText: { fontSize: 18, fontWeight: "800", color: colors.ink },
-  outlineButton: { flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: colors.ink, paddingVertical: 14, alignItems: "center" },
+  bottomBar: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingTop: 14, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.6)" },
+  outlineButton: { flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: colors.ink, paddingVertical: 15, alignItems: "center", backgroundColor: colors.surface },
   outlineText: { color: colors.ink, fontWeight: "700" },
-  solidButton: { flex: 1, borderRadius: 999, backgroundColor: colors.brand, paddingVertical: 14, alignItems: "center" },
-  solidText: { color: colors.brandInk, fontWeight: "700" },
+  solidButton: { flex: 1, borderRadius: 999, backgroundColor: colors.ink, paddingVertical: 15, alignItems: "center" },
+  solidText: { color: colors.surface, fontWeight: "700" },
 });

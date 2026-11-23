@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
 import { fetchFulfilment, startCheckout, type CheckoutLine, type FulfilmentChoice, type Fulfilment } from "../../src/api";
@@ -127,15 +128,15 @@ export default function CartScreen() {
                 <Text style={styles.stepText}>+</Text>
               </Pressable>
             </View>
-            <Pressable onPress={() => removeLine(l.lineKey)} accessibilityRole="button" accessibilityLabel={`Delete ${l.name}`}>
-              <Text style={styles.remove}>Remove</Text>
+            <Pressable onPress={() => removeLine(l.lineKey)} accessibilityRole="button" accessibilityLabel={`Delete ${l.name}`} style={styles.trash}>
+              <Ionicons name="trash-outline" size={18} color={colors.danger} />
             </Pressable>
           </View>
         </View>
       ))}
 
       <View style={styles.card}>
-        <Text style={styles.section}>Order summary</Text>
+        <Text style={styles.section}>Order Summary</Text>
         <View style={styles.totalRow}>
           <Text style={styles.muted}>Subtotal</Text>
           <Text style={styles.name}>{formatKobo(subtotal)}</Text>
@@ -187,7 +188,7 @@ export default function CartScreen() {
       </View>
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
-      <Pressable style={[styles.solid, (busy || !canOrder) && styles.disabled]} disabled={busy || !canOrder} onPress={placeOrder} accessibilityRole="button">
+      <Pressable style={[styles.checkout, (busy || !canOrder) && styles.disabled]} disabled={busy || !canOrder} onPress={placeOrder} accessibilityRole="button">
         <Text style={styles.solidText}>{busy ? "Starting payment…" : canOrder ? "Checkout" : "Ordering is closed right now"}</Text>
       </Pressable>
       {message ? <Text style={styles.muted}>{message}</Text> : null}
@@ -222,8 +223,10 @@ const styles = StyleSheet.create({
   content: { padding: 16, gap: 14, backgroundColor: colors.canvas, paddingBottom: 40 },
   section: { fontSize: 18, fontWeight: "800", color: colors.ink },
   card: { backgroundColor: colors.surface, borderRadius: 20, padding: 16, gap: 12, borderWidth: 1, borderColor: colors.line },
-  line: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, borderRadius: 20, padding: 10, borderWidth: 1, borderColor: colors.line },
-  thumb: { width: 72, height: 72, borderRadius: 14 },
+  line: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, borderRadius: 24, padding: 10, borderWidth: 1, borderColor: colors.line },
+  thumb: { width: 80, height: 80, borderRadius: 18 },
+  trash: { width: 34, height: 34, borderRadius: 17, alignItems: "center", justifyContent: "center", backgroundColor: "#fdecea" },
+  checkout: { backgroundColor: colors.ink, borderRadius: 999, paddingVertical: 16, alignItems: "center", marginTop: 4 },
   name: { fontSize: 16, fontWeight: "700", color: colors.ink },
   price: { fontSize: 15, fontWeight: "800", color: colors.brand },
   totalRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
