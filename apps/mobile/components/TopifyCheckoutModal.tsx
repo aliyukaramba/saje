@@ -3,12 +3,12 @@ import {
   ActivityIndicator,
   Modal,
   Pressable,
-  StatusBar,
   StyleSheet,
   Text,
   View,
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
+import { StatusBar } from "expo-status-bar";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import { fetchOrderStatus } from "../src/api";
@@ -92,7 +92,7 @@ export function TopifyCheckoutModal({
       presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <StatusBar barStyle="dark-content" backgroundColor={colors.surface} />
+      <StatusBar style="dark" />
       <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
         <View style={styles.header}>
           <View style={styles.heading}>
