@@ -239,7 +239,7 @@ export default function CartScreen() {
 
       {error ? <Text style={styles.error}>{error}</Text> : null}
       <Pressable style={[styles.checkout, (busy || !canOrder) && styles.disabled]} disabled={busy || !canOrder} onPress={placeOrder} accessibilityRole="button">
-        <Text style={styles.solidText}>{busy ? "Starting payment…" : canOrder ? "Checkout" : "Ordering is closed right now"}</Text>
+        <Text style={styles.solidText}>{busy ? "Starting payment…" : optionsLoading ? "Loading ordering options…" : optionsError ? "Ordering options unavailable" : canOrder ? "Checkout" : "Ordering is closed right now"}</Text>
       </Pressable>
       {message ? <Text style={styles.muted}>{message}</Text> : null}
       {checkoutModal}
