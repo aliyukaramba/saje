@@ -197,7 +197,20 @@ export function TopifyCheckoutModal({
                     applyMobileViewport();
                     document.addEventListener('DOMContentLoaded', applyMobileViewport);
                     window.addEventListener('load', applyMobileViewport);
-                    // Block file-picker and camera/microphone access: neither is needed for checkout.
+                    // Block checkout file pickers on iOS (Photos/Camera) and Android.
+                    // This payment flow does not require document or image uploads.
+                    var originalInputClick = HTMLInputElement.prototype.click;
+                    HTMLInputElement.prototype.click = function () {
+                      if (this.type === 'file') return;
+                      return originalInputClick.apply(this, arguments);
+                    };
+                    if (HTMLInputElement.prototype.showPicker) {
+                      var originalShowPicker = HTMLInputElement.prototype.showPicker;
+                      HTMLInputElement.prototype.showPicker = function () {
+                        if (this.type === 'file') return;
+                        return originalShowPicker.apply(this, arguments);
+                      };
+                    }
                     document.addEventListener('click', function (event) {
                       var target = event.target;
                       if (target && target.closest && target.closest('input[type="file"]')) {
