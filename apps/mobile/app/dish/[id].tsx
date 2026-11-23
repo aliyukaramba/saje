@@ -18,6 +18,8 @@ export default function DishScreen() {
   const insets = useSafeAreaInsets();
   const [item, setItem] = useState<MenuItem | null>(null);
   const [notFound, setNotFound] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const choice = useOptionChoice(item);
   const [fav, setFav] = useState(false);
@@ -28,8 +30,13 @@ export default function DishScreen() {
   }, [id]);
 
   useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setLoadError(null);
+    setNotFound(false);
     fetchMenu()
       .then((m) => {
+        if (!active) return;
         const found = m.items.find((i) => i.id === id);
         if (found) {
           setItem(found);
@@ -42,13 +49,30 @@ export default function DishScreen() {
           setNotFound(true);
         }
       })
-      .catch(() => setNotFound(true));
+      .catch((e: unknown) => {
+        if (!active) return;
+        setLoadError(e instanceof Error ? e.message : "We could not load this dish. Please try again.");
+      })
+      .finally(() => {
+        if (active) setLoading(false);
+      });
+    return () => { active = false; };
   }, [id]);
 
+  if (loadError) {
+    return (
+      <View style={styles.centered}>
+        <Text style={styles.error}>{loadError}</Text>
+        <Pressable style={styles.retryButton} onPress={() => router.replace(`/dish/${id}`)} accessibilityRole="button">
+          <Text style={styles.retryText}>Try again</Text>
+        </Pressable>
+      </View>
+    );
+  }
   if (notFound) {
     return <View style={styles.centered}><Text style={styles.muted}>This dish is no longer available.</Text></View>;
   }
-  if (!item) {
+  if (loading || !item) {
     return <View style={styles.centered}><ActivityIndicator color={colors.ink} /></View>;
   }
 
@@ -201,7 +225,9 @@ const styles = StyleSheet.create({
   pill: { borderRadius: 999, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 16, paddingVertical: 9 },
   pillSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
   pillText: { color: colors.ink, fontWeight: "600", fontSize: 14 },
-  error: { color: colors.danger, fontSize: 14 },
+  error: { color: colors.danger, fontSize: 14, textAlign: "center" },
+  retryButton: { marginTop: 14, borderRadius: 999, backgroundColor: colors.ink, paddingHorizontal: 22, paddingVertical: 12 },
+  retryText: { color: colors.surface, fontWeight: "700" },
   relatedCard: { width: 116, gap: 4 },
   relatedPhoto: { width: 116, height: 100, borderRadius: 18 },
   relatedName: { fontSize: 13, fontWeight: "600", color: colors.ink },
