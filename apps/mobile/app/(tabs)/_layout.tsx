@@ -37,7 +37,7 @@ function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
   });
 
   return (
-    <Animated.View style={[styles.iconWrap, { transform: [{ scale }] }]}>
+    <Animated.View style={styles.iconWrap}>
       <Animated.View
         pointerEvents="none"
         style={[
