@@ -1,0 +1,22 @@
+{
+  "expo": {
+    "name": "Saje",
+    "slug": "saje",
+    "scheme": "saje",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#f2f2f4",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.saje.customer"
+    },
+    "android": {
+      "package": "com.saje.customer"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-web-browser"
+    ]
+  }
+}
