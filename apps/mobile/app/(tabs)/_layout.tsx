@@ -15,48 +15,10 @@ const ITEM_WIDTH = 76; // 3 tabs x 76 = 228, inside the 230px capsule
 
 /** The active tab sits in a dark circle, as in the reference. */
 function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
-  const progress = useRef(new Animated.Value(focused ? 1 : 0)).current;
-
-  useEffect(() => {
-    Animated.spring(progress, {
-      toValue: focused ? 1 : 0,
-      damping: 14,
-      stiffness: 220,
-      mass: 0.7,
-      useNativeDriver: true,
-    }).start();
-  }, [focused, progress]);
-
-  const scale = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.82, 1],
-  });
-  const backgroundScale = progress.interpolate({
-    inputRange: [0, 1],
-    outputRange: [0.65, 1],
-  });
-
   return (
-    <Animated.View style={styles.iconWrap}>
-      <Animated.View
-        pointerEvents="none"
-        style={[
-          styles.activeBubble,
-          { opacity: progress, transform: [{ scale: backgroundScale }] },
-        ]}
-      />
-      <Animated.View
-        style={{
-          transform: [{ scale }],
-        }}
-      >
-        <Ionicons
-          name={name}
-          size={22}
-          color={focused ? colors.surface : colors.ink}
-        />
-      </Animated.View>
-    </Animated.View>
+    <View style={styles.iconWrap}>
+      <Ionicons name={name} size={22} color={focused ? colors.surface : colors.ink} />
+    </View>
   );
 }
 
@@ -66,12 +28,30 @@ function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
  * tabs cannot drift outside the capsule.
  */
 function CapsuleTabBar({ state, descriptors }: TabBarProps) {
+  const indicatorX = useRef(new Animated.Value(state.index)).current;
+
+  useEffect(() => {
+    Animated.spring(indicatorX, {
+      toValue: state.index,
+      damping: 18,
+      stiffness: 190,
+      mass: 0.8,
+      useNativeDriver: true,
+    }).start();
+  }, [state.index, indicatorX]);
+
+  const translateX = indicatorX.interpolate({
+    inputRange: [0, Math.max(state.routes.length - 1, 1)],
+    outputRange: [0, ITEM_WIDTH * Math.max(state.routes.length - 1, 1)],
+  });
+
   return (
     <View style={styles.dock} pointerEvents="box-none">
       <View style={styles.capsule}>
         <BlurView intensity={80} tint="light" style={StyleSheet.absoluteFill} />
         <View style={[StyleSheet.absoluteFill, styles.glassFill]} />
         <View style={styles.row}>
+          <Animated.View pointerEvents="none" style={[styles.slidingIndicator, { transform: [{ translateX }] }]} />
           {state.routes.map((route, index) => {
             const { options, navigation } = descriptors[route.key];
             const focused = state.index === index;
@@ -142,8 +122,8 @@ const styles = StyleSheet.create({
   },
   // Light, see-through white over the blur, matching TopBar and the dish screen.
   glassFill: { backgroundColor: "rgba(255,255,255,0.45)" },
-  row: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
+  row: { position: "relative", flexDirection: "row", alignItems: "center", justifyContent: "center" },
   item: { width: ITEM_WIDTH, height: BAR_HEIGHT, alignItems: "center", justifyContent: "center" },
   iconWrap: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
-  activeBubble: { ...StyleSheet.absoluteFillObject, borderRadius: 23, backgroundColor: colors.ink },
+  slidingIndicator: { position: "absolute", left: 15, top: 12, width: 46, height: 46, borderRadius: 23, backgroundColor: colors.ink },
 });
