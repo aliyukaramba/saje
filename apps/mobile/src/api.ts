@@ -87,3 +87,35 @@ export async function startCheckout(input: CheckoutInput): Promise<CheckoutResul
 export async function fetchOrderStatus(reference: string): Promise<OrderStatusResult> {
   return getJson<OrderStatusResult>(`/api/orders/status?ref=${encodeURIComponent(reference)}`);
 }
+
+
+export interface CreateReservationInput {
+  guestName: string;
+  guestPhone: string;
+  guestEmail?: string;
+  partySize: number;
+  startsAt: string;
+  specialRequests?: string;
+}
+
+export interface ReservationResult {
+  id: string;
+  guestName: string;
+  partySize: number;
+  startsAt: string;
+  status: string;
+}
+
+/** Requests a table. The restaurant confirms pending reservations from its dashboard. */
+export async function createReservation(input: CreateReservationInput): Promise<ReservationResult> {
+  const res = await fetch(`${API_URL}/api/reservations`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify(input),
+  });
+  const data = (await res.json().catch(() => ({}))) as { reservation?: ReservationResult; error?: string };
+  if (!res.ok || !data.reservation) {
+    throw new Error(data.error ?? "We could not complete your reservation. Please try again.");
+  }
+  return data.reservation;
+}
