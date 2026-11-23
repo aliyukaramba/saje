@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
-import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
-import { fetchFulfilment, startCheckout, type CheckoutLine, type FulfilmentChoice, type Fulfilment } from "../../src/api";
+import { fetchFulfilment, startCheckout, type CheckoutLine, type CheckoutResult, type FulfilmentChoice, type Fulfilment } from "../../src/api";
 import { changeQuantity, clearCart, removeLine, subtotalKobo, useCart } from "../../src/cart";
 import { SwipeRow } from "../../components/SwipeRow";
+import { TopifyCheckoutModal } from "../../components/TopifyCheckoutModal";
 import { rememberOrder } from "../../src/orders";
 import { formatKobo, nairaToKobo } from "../../src/money";
 import { colors } from "../../src/theme";
@@ -24,6 +24,7 @@ export default function CartScreen() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
+  const [activeCheckout, setActiveCheckout] = useState<CheckoutResult | null>(null);
 
   useEffect(() => {
     fetchFulfilment()
@@ -85,15 +86,33 @@ export default function CartScreen() {
         fulfilment,
       });
       await rememberOrder({ orderNumber, reference, placedAt: new Date().toISOString() });
-      await WebBrowser.openBrowserAsync(checkoutUrl);
-      clearCart();
-      setMessage(`Order ${orderNumber} placed. Track it under Orders.`);
+      setActiveCheckout({ checkoutUrl, orderNumber, reference });
     } catch (e) {
       setError(e instanceof Error ? e.message : "We could not start your order.");
     } finally {
       setBusy(false);
     }
   }
+
+  function handlePaymentPaid(paidOrderNumber: string) {
+    clearCart();
+    setMessage(`Payment confirmed for order ${paidOrderNumber}. Track it under Orders.`);
+  }
+
+  const checkoutModal = activeCheckout ? (
+    <TopifyCheckoutModal
+      visible
+      checkoutUrl={activeCheckout.checkoutUrl}
+      orderNumber={activeCheckout.orderNumber}
+      reference={activeCheckout.reference}
+      onClose={() => {
+        const orderNumber = activeCheckout.orderNumber;
+        setActiveCheckout(null);
+        setMessage((current) => current ?? `Payment is not confirmed yet. Order ${orderNumber} is saved under Orders; check its status before placing another order.`);
+      }}
+      onPaid={handlePaymentPaid}
+    />
+  ) : null;
 
   if (lines.length === 0) {
     return (
@@ -104,6 +123,7 @@ export default function CartScreen() {
             <Text style={styles.solidText}>{message ? "View my orders" : "Back to the menu"}</Text>
           </Pressable>
         </View>
+        {checkoutModal}
       </ScrollView>
     );
   }
@@ -192,6 +212,7 @@ export default function CartScreen() {
         <Text style={styles.solidText}>{busy ? "Starting payment…" : canOrder ? "Checkout" : "Ordering is closed right now"}</Text>
       </Pressable>
       {message ? <Text style={styles.muted}>{message}</Text> : null}
+      {checkoutModal}
     </ScrollView>
   );
 }
