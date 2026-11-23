@@ -9,7 +9,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { StatusBar } from "expo-status-bar";
-import { SafeAreaView } from "react-native-safe-area-context";
+import { SafeAreaProvider, SafeAreaView } from "react-native-safe-area-context";
 import { WebView } from "react-native-webview";
 import { fetchOrderStatus } from "../src/api";
 import { colors } from "../src/theme";
@@ -92,8 +92,9 @@ export function TopifyCheckoutModal({
       presentationStyle="fullScreen"
       onRequestClose={onClose}
     >
-      <StatusBar style="dark" />
-      <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
+      <SafeAreaProvider>
+        <StatusBar style="dark" />
+        <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
         <View style={styles.header}>
           <View style={styles.heading}>
             <Text style={styles.title}>Secure checkout</Text>
@@ -249,7 +250,8 @@ export function TopifyCheckoutModal({
             </View>
           </View>
         )}
-      </SafeAreaView>
+        </SafeAreaView>
+      </SafeAreaProvider>
     </Modal>
   );
 }
