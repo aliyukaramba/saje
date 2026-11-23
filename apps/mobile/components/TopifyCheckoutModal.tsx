@@ -162,6 +162,7 @@ export function TopifyCheckoutModal({
                 domStorageEnabled
                 sharedCookiesEnabled
                 thirdPartyCookiesEnabled
+                setSupportMultipleWindows={false}
                 allowsBackForwardNavigationGestures
                 onLoadStart={() => setLoading(true)}
                 onLoadEnd={() => setLoading(false)}
