@@ -123,11 +123,11 @@ export default function CartScreen() {
           <View style={{ alignItems: "flex-end", gap: 8 }}>
             <View style={styles.stepper}>
               <Pressable onPress={() => changeQuantity(l.lineKey, -1)} style={styles.stepButton} accessibilityLabel={`Remove one ${l.name}`}>
-                <Text style={styles.stepText}>−</Text>
+                <Text style={styles.stepSign}>−</Text>
               </Pressable>
               <Text style={styles.stepText}>{l.quantity}</Text>
               <Pressable onPress={() => changeQuantity(l.lineKey, 1)} style={styles.stepButton} accessibilityLabel={`Add one ${l.name}`}>
-                <Text style={styles.stepText}>+</Text>
+                <Text style={styles.stepSign}>+</Text>
               </Pressable>
             </View>
           </View>
@@ -235,6 +235,8 @@ const styles = StyleSheet.create({
   stepper: { flexDirection: "row", alignItems: "center", gap: 10 },
   stepButton: { width: 30, height: 30, borderRadius: 15, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
   stepText: { fontSize: 15, fontWeight: "700", color: colors.ink, minWidth: 14, textAlign: "center" },
+  // The +/− sit on the dark button, so they must be light (previously dark on dark).
+  stepSign: { fontSize: 18, fontWeight: "700", color: colors.surface, lineHeight: 20, textAlign: "center" },
   remove: { color: colors.danger, fontWeight: "600", fontSize: 13 },
   input: { borderWidth: 1, borderColor: colors.line, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 11, fontSize: 16, color: colors.ink, backgroundColor: colors.surface },
   segment: { flex: 1, borderRadius: 999, borderWidth: 1, borderColor: colors.line, paddingVertical: 10, alignItems: "center" },

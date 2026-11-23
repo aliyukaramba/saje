@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import { Dimensions, StyleSheet, View } from "react-native";
+import { StyleSheet, View } from "react-native";
 import { TopBar } from "../../components/TopBar";
 import { colors } from "../../src/theme";
 
@@ -50,7 +50,10 @@ const styles = StyleSheet.create({
   bar: {
     position: "absolute",
     width: BAR_WIDTH,
-    left: (Dimensions.get("window").width - BAR_WIDTH) / 2,
+    // Centre relative to the screen at layout time (not a width read once at load),
+    // so it stays in the middle on rotation, web and different devices.
+    left: "50%",
+    marginLeft: -BAR_WIDTH / 2,
     bottom: 26,
     height: 70,
     paddingTop: 0,
