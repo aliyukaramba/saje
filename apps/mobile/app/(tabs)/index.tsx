@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { fetchMenu, type Menu, type MenuItem } from "../../src/api";
@@ -9,30 +9,42 @@ import { colors } from "../../src/theme";
 export default function MenuScreen() {
   const [menu, setMenu] = useState<Menu | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
+  const [search, setSearch] = useState("");
   const [categoryId, setCategoryId] = useState<string | "all">("all");
 
-  useEffect(() => {
-    fetchMenu()
-      .then(setMenu)
-      .catch((e: unknown) => setError(e instanceof Error ? e.message : "The menu could not be loaded."));
-  }, []);
+  async function loadMenu(refresh = false) {
+    if (refresh) setRefreshing(true);
+    else setLoading(true);
+    setError(null);
+    try { setMenu(await fetchMenu()); }
+    catch (e) { setError(e instanceof Error ? e.message : "The menu could not be loaded."); }
+    finally { setLoading(false); setRefreshing(false); }
+  }
+
+  useEffect(() => { void loadMenu(); }, []);
 
   const available = useMemo(() => (menu ? menu.items.filter((i) => i.isAvailable) : []), [menu]);
-  const items = useMemo(
-    () => available.filter((i) => categoryId === "all" || i.categoryId === categoryId),
-    [available, categoryId],
-  );
+  const items = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return available.filter((i) => (categoryId === "all" || i.categoryId === categoryId) &&
+      (!query || i.name.toLowerCase().includes(query) || (i.description ?? "").toLowerCase().includes(query)));
+  }, [available, categoryId, search]);
   const featured = useMemo(() => items.filter((i) => i.isFeatured), [items]);
 
-  if (error) return <Centered><Text style={styles.error}>{error}</Text></Centered>;
-  if (!menu) return <Centered><ActivityIndicator color={colors.ink} /></Centered>;
+  if (loading && !menu) return <Centered><ActivityIndicator size="large" color={colors.brand} /><Text style={styles.loadingText}>Loading menu…</Text></Centered>;
+  if (error && !menu) return <Centered><Text style={styles.error}>{error}</Text><Pressable style={styles.retryButton} onPress={() => void loadMenu()}><Text style={styles.retryText}>Try again</Text></Pressable></Centered>;
+  if (!menu || menu.source === "unavailable") return <Centered><Text style={styles.error}>The menu is temporarily unavailable.</Text><Pressable style={styles.retryButton} onPress={() => void loadMenu()}><Text style={styles.retryText}>Reload menu</Text></Pressable></Centered>;
 
   return (
-    <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+    <ScrollView style={styles.screen} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled" refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void loadMenu(true)} tintColor={colors.brand} />}>
       <View style={styles.hero}>
         <Text style={styles.kicker}>Today's menu</Text>
         <Text style={styles.heading}>What are you <Text style={styles.headingLight}>craving?</Text></Text>
       </View>
+
+      <View style={styles.searchBox}><Ionicons name="search-outline" size={19} color={colors.muted} /><TextInput value={search} onChangeText={setSearch} placeholder="Search dishes…" placeholderTextColor={colors.muted} style={styles.searchInput} returnKeyType="search" />{search.length > 0 ? <Pressable onPress={() => setSearch("")} accessibilityRole="button" accessibilityLabel="Clear search"><Ionicons name="close-circle" size={18} color={colors.muted} /></Pressable> : null}</View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.chipRow}>
         <Chip label="All" active={categoryId === "all"} onPress={() => setCategoryId("all")} />
@@ -41,7 +53,7 @@ export default function MenuScreen() {
         ))}
       </ScrollView>
 
-      {featured.length > 0 ? (
+      {featured.length > 0 && !search.trim() ? (
         <>
           <Text style={styles.section}>Featured</Text>
           <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.featuredRow}>
@@ -59,8 +71,8 @@ export default function MenuScreen() {
         </>
       ) : null}
 
-      <Text style={styles.section}>{categoryId === "all" ? "All dishes" : menu.categories.find((c) => c.id === categoryId)?.name}</Text>
-      {items.length === 0 ? <Text style={styles.muted}>No dishes in this category yet.</Text> : null}
+      <View style={styles.sectionHeader}><View><Text style={styles.section}>{search.trim() ? "Search results" : categoryId === "all" ? "All dishes" : menu.categories.find((c) => c.id === categoryId)?.name}</Text><Text style={styles.resultCount}>{items.length} {items.length === 1 ? "dish" : "dishes"} available</Text></View></View>
+      {items.length === 0 ? <View style={styles.emptyState}><Ionicons name="search-outline" size={26} color={colors.muted} /><Text style={styles.emptyTitle}>No dishes found</Text><Text style={styles.muted}>Try another search or category.</Text><Pressable onPress={() => { setSearch(""); setCategoryId("all"); }}><Text style={styles.clearFilters}>Clear filters</Text></Pressable></View> : null}
       <View style={styles.grid}>
         {items.map((item) => (
           <DishCard key={item.id} item={item} />
@@ -125,15 +137,17 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.canvas },
-  content: { paddingTop: 4, paddingBottom: 130, gap: 14 },
-  hero: { paddingHorizontal: 20, gap: 2 },
-  kicker: { color: colors.muted, fontSize: 13, fontWeight: "600", letterSpacing: 0.4, textTransform: "uppercase" },
-  heading: { fontSize: 30, fontWeight: "800", color: colors.ink },
+  content: { paddingTop: 12, paddingBottom: 150, gap: 18 },
+  hero: { paddingHorizontal: 20, gap: 4 },
+  kicker: { color: colors.brand, fontSize: 10, fontWeight: "800", letterSpacing: 1.2 },
+  heading: { fontSize: 30, lineHeight: 36, fontWeight: "800", color: colors.ink, letterSpacing: -0.6 },
   headingLight: { fontWeight: "300" },
+  searchBox: { marginHorizontal: 16, height: 50, borderRadius: 16, paddingHorizontal: 14, flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line },
+  searchInput: { flex: 1, color: colors.ink, fontSize: 14, paddingVertical: 0 },
   chipRow: { paddingHorizontal: 16, gap: 8 },
   chip: { borderRadius: 999, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 16, paddingVertical: 9 },
   chipActive: { backgroundColor: colors.ink, borderColor: colors.ink },
-  chipText: { color: colors.ink, fontWeight: "600" },
+  chipText: { color: colors.ink, fontWeight: "600", fontSize: 13 },
   chipTextActive: { color: colors.surface },
   section: { fontSize: 18, fontWeight: "800", color: colors.ink, paddingHorizontal: 20, marginTop: 6 },
   featuredRow: { paddingHorizontal: 16, gap: 12 },
@@ -143,16 +157,24 @@ const styles = StyleSheet.create({
   featuredText: { position: "absolute", left: 16, right: 16, bottom: 14, flexDirection: "row", justifyContent: "space-between", alignItems: "flex-end", gap: 8 },
   featuredName: { flex: 1, color: "#fff", fontWeight: "800", fontSize: 17 },
   featuredPrice: { color: "#fff", fontWeight: "700", backgroundColor: "rgba(255,255,255,0.22)", borderRadius: 999, paddingHorizontal: 10, paddingVertical: 4, overflow: "hidden" },
+  sectionHeader: { paddingHorizontal: 0 },
+  resultCount: { color: colors.muted, fontSize: 12, paddingHorizontal: 20, marginTop: 2 },
   grid: { flexDirection: "row", flexWrap: "wrap", justifyContent: "space-between", paddingHorizontal: 16, rowGap: 14 },
-  card: { width: "48%", backgroundColor: colors.surface, borderRadius: 24, padding: 10, gap: 4, borderWidth: 1, borderColor: colors.line },
-  cardPhoto: { width: "100%", height: 130, borderRadius: 18, marginBottom: 6 },
-  name: { fontSize: 15, fontWeight: "700", color: colors.ink, marginTop: 2 },
-  muted: { color: colors.muted, fontSize: 12 },
+  card: { width: "48.2%", backgroundColor: colors.surface, borderRadius: 21, padding: 9, gap: 5, borderWidth: 1, borderColor: colors.line },
+  cardPhoto: { width: "100%", height: 124, borderRadius: 15, marginBottom: 5 },
+  name: { fontSize: 14, fontWeight: "800", color: colors.ink, marginTop: 2 },
+  muted: { color: colors.muted, fontSize: 11, lineHeight: 15 },
   cardFooter: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", marginTop: 6 },
   price: { fontSize: 14, fontWeight: "800", color: colors.brand },
   addRound: { width: 34, height: 34, borderRadius: 17, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center" },
   choose: { borderRadius: 999, borderWidth: 1, borderColor: colors.ink, paddingHorizontal: 10, paddingVertical: 5 },
   chooseText: { color: colors.ink, fontWeight: "700", fontSize: 12 },
-  centered: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: colors.canvas },
+  centered: { flex: 1, alignItems: "center", justifyContent: "center", padding: 28, gap: 10, backgroundColor: colors.canvas },
+  loadingText: { color: colors.muted, fontSize: 13 },
+  retryButton: { backgroundColor: colors.ink, borderRadius: 999, paddingHorizontal: 22, paddingVertical: 12, marginTop: 6 },
+  retryText: { color: colors.surface, fontWeight: "700", fontSize: 13 },
+  emptyState: { marginHorizontal: 16, backgroundColor: colors.surface, borderRadius: 22, padding: 24, alignItems: "center", gap: 9, borderWidth: 1, borderColor: colors.line },
+  emptyTitle: { color: colors.ink, fontSize: 16, fontWeight: "800" },
+  clearFilters: { color: colors.brand, fontWeight: "800", fontSize: 13 },
   error: { color: colors.danger, textAlign: "center", fontSize: 15 },
 });
