@@ -27,6 +27,7 @@ export interface MenuItem {
   priceMinor: string;
   discountPriceMinor: string | null;
   isAvailable: boolean;
+  isFeatured: boolean;
   hasOptions: boolean;
   options: MenuOptions | null;
 }
