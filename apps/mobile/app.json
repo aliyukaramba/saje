@@ -9,10 +9,25 @@
     "backgroundColor": "#f2f2f4",
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.saje.customer"
+      "bundleIdentifier": "com.saje.customer",
+      "associatedDomains": ["applinks:saje-web.akarambaaleeyu.workers.dev"]
     },
     "android": {
-      "package": "com.saje.customer"
+      "package": "com.saje.customer",
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "https",
+              "host": "saje-web.akarambaaleeyu.workers.dev",
+              "pathPrefix": "/t/"
+            }
+          ],
+          "category": ["BROWSABLE", "DEFAULT"]
+        }
+      ]
     },
     "plugins": [
       "expo-router",
