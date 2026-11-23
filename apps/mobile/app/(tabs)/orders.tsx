@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
   content: { padding: 16, paddingBottom: 140, gap: 12, backgroundColor: colors.canvas, flexGrow: 1 },
   swipeShell: { position: "relative", borderRadius: 16, overflow: "hidden" },
   card: { backgroundColor: colors.surface, borderRadius: 16, padding: 16, gap: 8, borderWidth: 1, borderColor: colors.line, minHeight: 82, justifyContent: "center" },
-  deleteUnderlay: { ...StyleSheet.absoluteFillObject, alignItems: "flex-end", justifyContent: "center", backgroundColor: "#d92d20", borderRadius: 16 },
+  deleteUnderlay: { ...StyleSheet.absoluteFill, alignItems: "flex-end", justifyContent: "center", backgroundColor: "#d92d20", borderRadius: 16 },
   deleteAction: { width: 112, height: "100%", alignItems: "center", justifyContent: "center", gap: 5 },
   deleteText: { color: "#ffffff", fontSize: 12, fontWeight: "700" },
   emptyCard: { backgroundColor: colors.surface, borderRadius: 16, padding: 16, gap: 8, borderWidth: 1, borderColor: colors.line },
