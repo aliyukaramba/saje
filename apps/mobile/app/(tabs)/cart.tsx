@@ -296,5 +296,7 @@ const styles = StyleSheet.create({
   solid: { backgroundColor: colors.brand, borderRadius: 999, paddingVertical: 15, alignItems: "center" },
   solidText: { color: colors.brandInk, fontWeight: "700", fontSize: 16 },
   disabled: { opacity: 0.6 },
+  retryOptions: { alignSelf: "flex-start", borderRadius: 999, paddingHorizontal: 16, paddingVertical: 9, backgroundColor: colors.ink },
+  retryOptionsText: { color: colors.surface, fontWeight: "700" },
   error: { color: colors.danger, fontSize: 14 },
 });
