@@ -1,13 +1,12 @@
 import { Pressable, StyleSheet, View } from "react-native";
 import { Tabs } from "expo-router";
-import type { BottomTabBarProps } from "@react-navigation/bottom-tabs";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
 import { TopBar } from "../../components/TopBar";
 import { colors } from "../../src/theme";
 
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
-type TabBarProps = BottomTabBarProps;
+type TabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
 const BAR_WIDTH = 230;
 const BAR_HEIGHT = 70;
@@ -27,7 +26,7 @@ function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
  * tabs laid out inside it. The library's internal row is not used, so the
  * tabs cannot drift outside the capsule.
  */
-function CapsuleTabBar({ state, descriptors, navigation }: TabBarProps) {
+function CapsuleTabBar({ state, descriptors }: TabBarProps) {
   return (
     <View style={styles.dock} pointerEvents="box-none">
       <View style={styles.capsule}>
@@ -35,11 +34,10 @@ function CapsuleTabBar({ state, descriptors, navigation }: TabBarProps) {
         <View style={[StyleSheet.absoluteFill, styles.glassFill]} />
         <View style={styles.row}>
           {state.routes.map((route, index) => {
-            const { options } = descriptors[route.key];
+            const { options, navigation } = descriptors[route.key];
             const focused = state.index === index;
             const onPress = () => {
-              const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
-              if (!focused && !event.defaultPrevented) navigation.navigate(route.name, route.params);
+              if (!focused) navigation.navigate(route.name, route.params);
             };
             return (
               <Pressable
