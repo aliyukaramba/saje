@@ -24,3 +24,13 @@ export async function rememberOrder(order: SavedOrder) {
     /* storage unavailable: the order still exists on the server */
   }
 }
+
+export async function removeSavedOrder(reference: string): Promise<SavedOrder[]> {
+  const list = (await readOrders()).filter((order) => order.reference !== reference);
+  try {
+    await AsyncStorage.setItem(KEY, JSON.stringify(list));
+  } catch {
+    /* storage unavailable: keep the in-memory screen usable for this session */
+  }
+  return list;
+}
