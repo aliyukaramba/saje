@@ -26,7 +26,7 @@ function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
  * tabs laid out inside it. The library's internal row is not used, so the
  * tabs cannot drift outside the capsule.
  */
-function CapsuleTabBar({ state, descriptors, navigation }: TabBarProps) {
+function CapsuleTabBar({ state, descriptors }: TabBarProps) {
   return (
     <View style={styles.dock} pointerEvents="box-none">
       <View style={styles.capsule}>
@@ -34,7 +34,8 @@ function CapsuleTabBar({ state, descriptors, navigation }: TabBarProps) {
         <View style={[StyleSheet.absoluteFill, styles.glassFill]} />
         <View style={styles.row}>
           {state.routes.map((route, index) => {
-            const { options } = descriptors[route.key];
+            // Each tab's own navigation object; the bar-level one is not always provided.
+            const { options, navigation } = descriptors[route.key];
             const focused = state.index === index;
             const onPress = () => {
               const event = navigation.emit({ type: "tabPress", target: route.key, canPreventDefault: true });
