@@ -6,6 +6,7 @@ export interface CartLine {
   lineKey: string;
   productId: string;
   name: string;
+  imageUrl: string | null;
   variantId: string | null;
   modifierIds: string[];
   optionLabel: string;
@@ -64,6 +65,12 @@ export function changeQuantity(lineKey: string, delta: number) {
   lines = lines
     .map((l) => (l.lineKey === lineKey ? { ...l, quantity: l.quantity + delta } : l))
     .filter((l) => l.quantity > 0);
+  emit();
+  void persist();
+}
+
+export function removeLine(lineKey: string) {
+  lines = lines.filter((l) => l.lineKey !== lineKey);
   emit();
   void persist();
 }
