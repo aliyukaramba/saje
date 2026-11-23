@@ -5,6 +5,7 @@ import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
 import { fetchFulfilment, startCheckout, type CheckoutLine, type FulfilmentChoice, type Fulfilment } from "../../src/api";
 import { changeQuantity, clearCart, removeLine, subtotalKobo, useCart } from "../../src/cart";
+import { SwipeRow } from "../../components/SwipeRow";
 import { rememberOrder } from "../../src/orders";
 import { formatKobo, nairaToKobo } from "../../src/money";
 import { colors } from "../../src/theme";
@@ -111,7 +112,8 @@ export default function CartScreen() {
     <ScrollView contentContainerStyle={styles.content}>
       <Text style={styles.section}>Your cart</Text>
       {lines.map((l) => (
-        <View key={l.lineKey} style={styles.line}>
+        <SwipeRow key={l.lineKey} onDelete={() => removeLine(l.lineKey)}>
+        <View style={styles.line}>
           {l.imageUrl ? <Image source={{ uri: l.imageUrl }} style={styles.thumb} /> : <View style={[styles.thumb, { backgroundColor: colors.line }]} />}
           <View style={{ flex: 1, gap: 4 }}>
             <Text style={styles.name} numberOfLines={1}>{l.name}</Text>
@@ -128,11 +130,9 @@ export default function CartScreen() {
                 <Text style={styles.stepText}>+</Text>
               </Pressable>
             </View>
-            <Pressable onPress={() => removeLine(l.lineKey)} accessibilityRole="button" accessibilityLabel={`Delete ${l.name}`} style={styles.trash}>
-              <Ionicons name="trash-outline" size={18} color={colors.danger} />
-            </Pressable>
           </View>
         </View>
+        </SwipeRow>
       ))}
 
       <View style={styles.card}>
@@ -220,7 +220,7 @@ function Segment({ label, active, onPress }: { label: string; active: boolean; o
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, gap: 14, backgroundColor: colors.canvas, paddingBottom: 40 },
+  content: { padding: 16, gap: 14, backgroundColor: colors.canvas, paddingBottom: 140 },
   section: { fontSize: 18, fontWeight: "800", color: colors.ink },
   card: { backgroundColor: colors.surface, borderRadius: 20, padding: 16, gap: 12, borderWidth: 1, borderColor: colors.line },
   line: { flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: colors.surface, borderRadius: 24, padding: 10, borderWidth: 1, borderColor: colors.line },

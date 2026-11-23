@@ -1,7 +1,7 @@
 import { Tabs } from "expo-router";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
-import { StyleSheet, View } from "react-native";
+import { Dimensions, StyleSheet, View } from "react-native";
 import { TopBar } from "../../components/TopBar";
 import { colors } from "../../src/theme";
 
@@ -44,11 +44,13 @@ export default function TabsLayout() {
   );
 }
 
+const BAR_WIDTH = 230;
+
 const styles = StyleSheet.create({
   bar: {
     position: "absolute",
-    left: 40,
-    right: 40,
+    width: BAR_WIDTH,
+    left: (Dimensions.get("window").width - BAR_WIDTH) / 2,
     bottom: 26,
     height: 70,
     paddingTop: 0,

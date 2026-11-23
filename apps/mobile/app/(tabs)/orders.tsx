@@ -79,7 +79,7 @@ export default function OrdersScreen() {
 }
 
 const styles = StyleSheet.create({
-  content: { padding: 16, gap: 12, backgroundColor: colors.canvas, flexGrow: 1 },
+  content: { padding: 16, paddingBottom: 140, gap: 12, backgroundColor: colors.canvas, flexGrow: 1 },
   card: { backgroundColor: colors.surface, borderRadius: 16, padding: 16, gap: 8, borderWidth: 1, borderColor: colors.line },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 },
   name: { fontSize: 16, fontWeight: "700", color: colors.ink },
