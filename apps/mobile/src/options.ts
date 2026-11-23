@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import type { MenuItem, OptionGroup } from "./api";
 import type { NewLine } from "./cart";
 
@@ -10,16 +10,15 @@ export function useOptionChoice(item: MenuItem | null) {
   const key = item?.id ?? "";
   const defaultVariant = (m: MenuItem | null) => m?.options?.variants.find((v) => v.isAvailable)?.id ?? null;
 
-  const [shownKey, setShownKey] = useState(key);
   const [variantId, setVariantId] = useState<string | null>(defaultVariant(item));
   const [picked, setPicked] = useState<Record<string, string[]>>({});
 
-  // Reset the choices when a different dish is shown.
-  if (shownKey !== key) {
-    setShownKey(key);
+  // Reset selections when navigating from one dish to another. Do this in an
+  // effect rather than updating state during render.
+  useEffect(() => {
     setVariantId(defaultVariant(item));
     setPicked({});
-  }
+  }, [key]);
 
   const variant = options?.variants.find((v) => v.id === variantId) ?? null;
   const selectedModifiers = options
