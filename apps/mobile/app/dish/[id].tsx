@@ -19,6 +19,7 @@ export default function DishScreen() {
   const [item, setItem] = useState<MenuItem | null>(null);
   const [notFound, setNotFound] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [retryCount, setRetryCount] = useState(0);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const choice = useOptionChoice(item);
@@ -57,13 +58,13 @@ export default function DishScreen() {
         if (active) setLoading(false);
       });
     return () => { active = false; };
-  }, [id]);
+  }, [id, retryCount]);
 
   if (loadError) {
     return (
       <View style={styles.centered}>
         <Text style={styles.error}>{loadError}</Text>
-        <Pressable style={styles.retryButton} onPress={() => router.replace(`/dish/${id}`)} accessibilityRole="button">
+        <Pressable style={styles.retryButton} onPress={() => setRetryCount((count) => count + 1)} accessibilityRole="button">
           <Text style={styles.retryText}>Try again</Text>
         </Pressable>
       </View>
