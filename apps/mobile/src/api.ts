@@ -3,6 +3,19 @@ export const API_URL = process.env.EXPO_PUBLIC_API_URL ?? "https://saje-web.akar
 
 export interface MenuCategory { id: string; name: string }
 
+export interface OptionVariant { id: string; name: string; delta: string; isAvailable: boolean }
+export interface OptionModifier { id: string; name: string; delta: string; isAvailable: boolean }
+export interface OptionGroup {
+  id: string;
+  name: string;
+  isRequired: boolean;
+  minSelect: number;
+  maxSelect: number;
+  modifiers: OptionModifier[];
+}
+/** Money here is kobo as strings. */
+export interface MenuOptions { unitMinor: string; variants: OptionVariant[]; groups: OptionGroup[] }
+
 export interface MenuItem {
   id: string;
   name: string;
@@ -11,8 +24,11 @@ export interface MenuItem {
   categoryId: string;
   price: string;
   discountPrice: string | null;
+  priceMinor: string;
+  discountPriceMinor: string | null;
   isAvailable: boolean;
   hasOptions: boolean;
+  options: MenuOptions | null;
 }
 
 export interface Menu {
@@ -21,32 +37,52 @@ export interface Menu {
   source: "database" | "unavailable";
 }
 
-export async function fetchMenu(): Promise<Menu> {
-  const res = await fetch(`${API_URL}/api/menu`);
-  if (!res.ok) throw new Error("The menu could not be loaded.");
-  return (await res.json()) as Menu;
-}
+/** Zone fees and minimums are naira decimal strings, as the website receives them. */
+export interface DeliveryZone { id: string; name: string; fee: string; minOrderAmount: string }
+export interface Fulfilment { pickupEnabled: boolean; deliveryEnabled: boolean; zones: DeliveryZone[] }
+
+export interface CheckoutLine { productId: string; quantity: number; variantId?: string; modifierIds: string[] }
+
+export interface DeliveryAddress { line1: string; city: string; state: string; landmark?: string; instructions?: string }
+
+export type FulfilmentChoice =
+  | { type: "PICKUP"; pickupAt: string }
+  | { type: "DELIVERY"; zoneId: string; address: DeliveryAddress };
 
 export interface CheckoutInput {
-  lines: { productId: string; quantity: number }[];
+  lines: CheckoutLine[];
   customer: { name: string; phone: string; email: string };
-  pickupAt: Date;
+  fulfilment: FulfilmentChoice;
 }
 
-/** Starts an order for pickup and returns the payment page to open. */
-export async function startPickupCheckout(input: CheckoutInput): Promise<{ checkoutUrl: string; orderNumber: string }> {
+export interface CheckoutResult { checkoutUrl: string; orderNumber: string; reference: string }
+
+export interface OrderStatusResult { paymentStatus: string; orderNumber: string; orderStatus: string }
+
+async function getJson<T>(path: string): Promise<T> {
+  const res = await fetch(`${API_URL}${path}`);
+  if (!res.ok) throw new Error("Something went wrong. Please try again.");
+  return (await res.json()) as T;
+}
+
+export const fetchMenu = () => getJson<Menu>("/api/menu");
+export const fetchFulfilment = () => getJson<Fulfilment>("/api/fulfilment");
+
+/** Starts an order and returns the payment page to open, plus the reference used to track it. */
+export async function startCheckout(input: CheckoutInput): Promise<CheckoutResult> {
   const res = await fetch(`${API_URL}/api/checkout`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({
-      lines: input.lines.map((l) => ({ ...l, modifierIds: [] })),
-      customer: input.customer,
-      fulfilment: { type: "PICKUP", pickupAt: input.pickupAt.toISOString() },
-    }),
+    body: JSON.stringify(input),
   });
-  const data = (await res.json().catch(() => ({}))) as { checkoutUrl?: string; orderNumber?: string; error?: string };
-  if (!res.ok || !data.checkoutUrl || !data.orderNumber) {
+  const data = (await res.json().catch(() => ({}))) as Partial<CheckoutResult> & { error?: string };
+  if (!res.ok || !data.checkoutUrl || !data.orderNumber || !data.reference) {
     throw new Error(data.error ?? "We could not start your order. Please try again.");
   }
-  return { checkoutUrl: data.checkoutUrl, orderNumber: data.orderNumber };
+  return { checkoutUrl: data.checkoutUrl, orderNumber: data.orderNumber, reference: data.reference };
+}
+
+/** Public payment and order status for an order placed from this phone. */
+export async function fetchOrderStatus(reference: string): Promise<OrderStatusResult> {
+  return getJson<OrderStatusResult>(`/api/orders/status?ref=${encodeURIComponent(reference)}`);
 }

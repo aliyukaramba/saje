@@ -62,7 +62,7 @@ export async function POST(req: Request) {
       callbackUrl: `${origin}/checkout/return?ref=${encodeURIComponent(order.reference)}`,
       metadata: { orderNumber: order.orderNumber },
     });
-    return NextResponse.json({ checkoutUrl: checkout.checkout_url, orderNumber: order.orderNumber });
+    return NextResponse.json({ checkoutUrl: checkout.checkout_url, orderNumber: order.orderNumber, reference: order.reference });
   } catch (e) {
     if (e instanceof OrderInputError) {
       return NextResponse.json({ error: e.message }, { status: 422 });

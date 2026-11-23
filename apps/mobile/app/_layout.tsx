@@ -22,6 +22,7 @@ export default function RootLayout() {
       >
         <Stack.Screen name="index" options={{ title: "Menu" }} />
         <Stack.Screen name="cart" options={{ title: "Your order" }} />
+        <Stack.Screen name="orders" options={{ title: "My orders" }} />
       </Stack>
     </>
   );

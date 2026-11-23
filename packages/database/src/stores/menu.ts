@@ -16,6 +16,9 @@ export interface MenuItemView {
   categoryName: string;
   price: string;
   discountPrice: string | null;
+  /** Kobo as strings, for totals in the mobile app. */
+  priceMinor: string;
+  discountPriceMinor: string | null;
   isFeatured: boolean;
   isAvailable: boolean;
   /** True when the product has variants or modifiers. */
@@ -65,6 +68,8 @@ export async function loadMenuFromDb(db: PrismaClient): Promise<MenuData> {
         categoryName: p.category.name,
         price: formatMinor(base, p.currency),
         discountPrice: discount !== null ? formatMinor(discount, p.currency) : null,
+        priceMinor: base.toString(),
+        discountPriceMinor: discount !== null ? discount.toString() : null,
         isFeatured: p.isFeatured,
         isAvailable: p.isAvailable,
         hasOptions,
