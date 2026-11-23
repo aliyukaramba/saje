@@ -9,9 +9,9 @@ import { colors } from "../../src/theme";
 type IconName = React.ComponentProps<typeof Ionicons>["name"];
 type TabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
-const BAR_WIDTH = 230;
+const BAR_WIDTH = 310;
 const BAR_HEIGHT = 70;
-const ITEM_WIDTH = 76; // 3 tabs x 76 = 228, inside the 230px capsule
+const ITEM_WIDTH = 76; // 4 tabs x 76 = 304, inside the 310px capsule
 
 /** The active tab sits in a dark circle, as in the reference. */
 function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
@@ -93,6 +93,10 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="cart"
         options={{ title: "Your order", tabBarIcon: ({ focused }) => <TabIcon name={focused ? "bag-handle" : "bag-handle-outline"} focused={focused} /> }}
+      />
+      <Tabs.Screen
+        name="reserve"
+        options={{ title: "Reservations", tabBarIcon: ({ focused }) => <TabIcon name={focused ? "calendar" : "calendar-outline"} focused={focused} /> }}
       />
       <Tabs.Screen
         name="orders"
