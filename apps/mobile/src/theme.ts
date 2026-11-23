@@ -4,7 +4,7 @@ export const colors = {
   surface: "#ffffff",
   ink: "#121212",
   muted: "#5f5f67",
-  brand: "#1f5c58",
+  brand: "#f2843a",
   brandInk: "#ffffff",
   line: "#e2e2e6",
   danger: "#b42318",
