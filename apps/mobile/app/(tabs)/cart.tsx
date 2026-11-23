@@ -15,6 +15,9 @@ const PICKUP_MINUTES = 30;
 export default function CartScreen() {
   const lines = useCart();
   const [options, setOptions] = useState<Fulfilment | null>(null);
+  const [optionsLoading, setOptionsLoading] = useState(true);
+  const [optionsError, setOptionsError] = useState<string | null>(null);
+  const [optionsRetry, setOptionsRetry] = useState(0);
   const [mode, setMode] = useState<"PICKUP" | "DELIVERY">("PICKUP");
   const [zoneId, setZoneId] = useState<string | null>(null);
   const [address, setAddress] = useState({ line1: "", city: "", state: "", landmark: "", instructions: "" });
@@ -27,19 +30,35 @@ export default function CartScreen() {
   const [activeCheckout, setActiveCheckout] = useState<CheckoutResult | null>(null);
 
   useEffect(() => {
+    let active = true;
+    setOptionsLoading(true);
+    setOptionsError(null);
     fetchFulfilment()
-      .then((o) => {
-        setOptions(o);
-        if (!o.pickupEnabled && o.deliveryEnabled) setMode("DELIVERY");
+      .then((result) => {
+        if (!active) return;
+        setOptions(result);
+        setMode((current) => {
+          if (current === "PICKUP" && !result.pickupEnabled && result.deliveryEnabled) return "DELIVERY";
+          if (current === "DELIVERY" && !result.deliveryEnabled && result.pickupEnabled) return "PICKUP";
+          return current;
+        });
       })
-      .catch(() => setOptions({ pickupEnabled: true, deliveryEnabled: false, zones: [] }));
-  }, []);
+      .catch((cause: unknown) => {
+        if (!active) return;
+        setOptions(null);
+        setOptionsError(cause instanceof Error ? cause.message : "We could not load ordering options.");
+      })
+      .finally(() => {
+        if (active) setOptionsLoading(false);
+      });
+    return () => { active = false; };
+  }, [optionsRetry]);
 
   const subtotal = subtotalKobo(lines);
   const zone = options?.zones.find((z) => z.id === zoneId) ?? null;
   const feeKobo = mode === "DELIVERY" && zone ? nairaToKobo(zone.fee) : 0;
   const minKobo = zone ? nairaToKobo(zone.minOrderAmount) : 0;
-  const canOrder = options !== null && (mode === "PICKUP" ? options.pickupEnabled : options.deliveryEnabled);
+  const canOrder = !optionsLoading && !optionsError && options !== null && (mode === "PICKUP" ? options.pickupEnabled : options.deliveryEnabled);
 
   async function placeOrder() {
     setError(null);
@@ -176,7 +195,18 @@ export default function CartScreen() {
 
       <View style={styles.card}>
         <Text style={styles.section}>How do you want it?</Text>
-        {!options ? <Text style={styles.muted}>Loading options…</Text> : null}
+        {optionsLoading ? <Text style={styles.muted}>Loading ordering options…</Text> : null}
+        {optionsError ? (
+          <View style={{ gap: 8 }}>
+            <Text style={styles.error}>We could not load pickup and delivery options. {optionsError}</Text>
+            <Pressable style={styles.retryOptions} onPress={() => setOptionsRetry((value) => value + 1)} accessibilityRole="button">
+              <Text style={styles.retryOptionsText}>Try again</Text>
+            </Pressable>
+          </View>
+        ) : null}
+        {!optionsLoading && !optionsError && options && !options.pickupEnabled && !options.deliveryEnabled ? (
+          <Text style={styles.error}>Online ordering is currently unavailable. Please try again later.</Text>
+        ) : null}
         <View style={{ flexDirection: "row", gap: 8 }}>
           {options?.pickupEnabled ? <Segment label="Pickup" active={mode === "PICKUP"} onPress={() => setMode("PICKUP")} /> : null}
           {options?.deliveryEnabled ? <Segment label="Delivery" active={mode === "DELIVERY"} onPress={() => setMode("DELIVERY")} /> : null}
