@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, View } from "react-native";
+import { Animated, Pressable, StyleSheet, View } from "react-native";
+import { useEffect, useRef } from "react";
 import { Tabs } from "expo-router";
 import { BlurView } from "expo-blur";
 import { Ionicons } from "@expo/vector-icons";
@@ -14,10 +15,48 @@ const ITEM_WIDTH = 76; // 3 tabs x 76 = 228, inside the 230px capsule
 
 /** The active tab sits in a dark circle, as in the reference. */
 function TabIcon({ name, focused }: { name: IconName; focused: boolean }) {
+  const progress = useRef(new Animated.Value(focused ? 1 : 0)).current;
+
+  useEffect(() => {
+    Animated.spring(progress, {
+      toValue: focused ? 1 : 0,
+      damping: 14,
+      stiffness: 220,
+      mass: 0.7,
+      useNativeDriver: true,
+    }).start();
+  }, [focused, progress]);
+
+  const scale = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.82, 1],
+  });
+  const backgroundScale = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [0.65, 1],
+  });
+
   return (
-    <View style={[styles.iconWrap, focused && styles.iconActive]}>
-      <Ionicons name={name} size={22} color={focused ? colors.surface : colors.ink} />
-    </View>
+    <Animated.View style={[styles.iconWrap, { transform: [{ scale }] }]}>
+      <Animated.View
+        pointerEvents="none"
+        style={[
+          styles.activeBubble,
+          { opacity: progress, transform: [{ scale: backgroundScale }] },
+        ]}
+      />
+      <Animated.View
+        style={{
+          transform: [{ scale }],
+        }}
+      >
+        <Ionicons
+          name={name}
+          size={22}
+          color={focused ? colors.surface : colors.ink}
+        />
+      </Animated.View>
+    </Animated.View>
   );
 }
 
@@ -106,5 +145,5 @@ const styles = StyleSheet.create({
   row: { flexDirection: "row", alignItems: "center", justifyContent: "center" },
   item: { width: ITEM_WIDTH, height: BAR_HEIGHT, alignItems: "center", justifyContent: "center" },
   iconWrap: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
-  iconActive: { backgroundColor: colors.ink },
+  activeBubble: { ...StyleSheet.absoluteFillObject, borderRadius: 23, backgroundColor: colors.ink },
 });
