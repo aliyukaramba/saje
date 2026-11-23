@@ -1,5 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
-import { ScrollView, StyleSheet, Text, View } from "react-native";
+import { useCallback, useState } from "react";
+import { RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useFocusEffect } from "expo-router";
 import { fetchOrderStatus, type OrderStatusResult } from "../../src/api";
 import { readOrders, type SavedOrder } from "../../src/orders";
 import { colors } from "../../src/theme";
@@ -25,55 +26,89 @@ export default function OrdersScreen() {
   const [orders, setOrders] = useState<SavedOrder[]>([]);
   const [statuses, setStatuses] = useState<Record<string, OrderStatusResult | "unavailable">>({});
   const [loaded, setLoaded] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const refresh = useCallback(async (list: SavedOrder[]) => {
+  const refreshStatuses = useCallback(async (list: SavedOrder[], isActive: () => boolean) => {
     const results = await Promise.all(
-      list.map(async (o) => {
+      list.map(async (order) => {
         try {
-          return [o.reference, await fetchOrderStatus(o.reference)] as const;
+          return [order.reference, await fetchOrderStatus(order.reference)] as const;
         } catch {
-          return [o.reference, "unavailable"] as const;
+          return [order.reference, "unavailable"] as const;
         }
       }),
     );
-    setStatuses(Object.fromEntries(results));
+    if (isActive()) {
+      setStatuses((current) => ({ ...current, ...Object.fromEntries(results) }));
+    }
   }, []);
 
-  useEffect(() => {
-    let active = true;
-    let timer: ReturnType<typeof setInterval> | undefined;
-    readOrders().then((list) => {
-      if (!active) return;
-      setOrders(list);
-      setLoaded(true);
-      void refresh(list);
-      timer = setInterval(() => void refresh(list), 15000);
-    });
-    return () => {
-      active = false;
-      if (timer) clearInterval(timer);
-    };
-  }, [refresh]);
+  const refreshOrders = useCallback(async (isActive: () => boolean) => {
+    const list = await readOrders();
+    if (!isActive()) return;
+    setOrders(list);
+    setLoaded(true);
+    await refreshStatuses(list, isActive);
+  }, [refreshStatuses]);
+
+  // Refresh the local order list every time the tab becomes active. This picks
+  // up orders created while the user was on the Menu or Cart tab.
+  useFocusEffect(
+    useCallback(() => {
+      let active = true;
+      let refreshingNow = false;
+      const isActive = () => active;
+
+      const load = async () => {
+        if (refreshingNow) return;
+        refreshingNow = true;
+        try {
+          await refreshOrders(isActive);
+        } finally {
+          refreshingNow = false;
+        }
+      };
+
+      void load();
+      const timer = setInterval(() => void load(), 15000);
+      return () => {
+        active = false;
+        clearInterval(timer);
+      };
+    }, [refreshOrders]),
+  );
+
+  const onPullToRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshOrders(() => true);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshOrders]);
 
   return (
-    <ScrollView contentContainerStyle={styles.content}>
+    <ScrollView
+      contentContainerStyle={styles.content}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onPullToRefresh} tintColor={colors.brand} />}
+    >
       {loaded && orders.length === 0 ? (
         <View style={styles.card}>
           <Text style={styles.muted}>No orders from this phone yet.</Text>
         </View>
       ) : null}
-      {orders.map((o) => (
-        <View key={o.reference} style={styles.card}>
+      {orders.map((order) => (
+        <View key={order.reference} style={styles.card}>
           <View style={styles.row}>
-            <Text style={styles.name}>{o.orderNumber}</Text>
-            <Text style={styles.pill}>{statusLabel(statuses[o.reference])}</Text>
+            <Text style={styles.name}>{order.orderNumber}</Text>
+            <Text style={styles.pill}>{statusLabel(statuses[order.reference])}</Text>
           </View>
           <Text style={styles.muted}>
-            Placed {new Date(o.placedAt).toLocaleString("en-NG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
+            Placed {new Date(order.placedAt).toLocaleString("en-NG", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" })}
           </Text>
         </View>
       ))}
-      {orders.length > 0 ? <Text style={styles.muted}>Statuses refresh every 15 seconds.</Text> : null}
+      {orders.length > 0 ? <Text style={styles.muted}>Statuses refresh every 15 seconds. Pull down to refresh now.</Text> : null}
     </ScrollView>
   );
 }
