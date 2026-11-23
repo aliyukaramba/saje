@@ -16,7 +16,13 @@
     },
     "plugins": [
       "expo-router",
-      "expo-web-browser"
+      "expo-web-browser",
+      [
+        "expo-camera",
+        {
+          "cameraPermission": "Allow SAJE to use your camera to scan restaurant table QR codes."
+        }
+      ]
     ],
     "icon": "./assets/icon.png",
     "splash": {
