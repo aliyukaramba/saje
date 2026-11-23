@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { ScrollView, StyleSheet, Text, View } from "react-native";
-import { fetchOrderStatus, type OrderStatusResult } from "../src/api";
-import { readOrders, type SavedOrder } from "../src/orders";
-import { colors } from "../src/theme";
+import { fetchOrderStatus, type OrderStatusResult } from "../../src/api";
+import { readOrders, type SavedOrder } from "../../src/orders";
+import { colors } from "../../src/theme";
 
 const LABELS: Record<string, string> = {
   CONFIRMED: "Confirmed",

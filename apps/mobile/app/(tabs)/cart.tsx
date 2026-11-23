@@ -2,11 +2,11 @@ import { useEffect, useState } from "react";
 import { Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
 import * as WebBrowser from "expo-web-browser";
 import { router } from "expo-router";
-import { fetchFulfilment, startCheckout, type CheckoutLine, type FulfilmentChoice, type Fulfilment } from "../src/api";
-import { changeQuantity, clearCart, removeLine, subtotalKobo, useCart } from "../src/cart";
-import { rememberOrder } from "../src/orders";
-import { formatKobo, nairaToKobo } from "../src/money";
-import { colors } from "../src/theme";
+import { fetchFulfilment, startCheckout, type CheckoutLine, type FulfilmentChoice, type Fulfilment } from "../../src/api";
+import { changeQuantity, clearCart, removeLine, subtotalKobo, useCart } from "../../src/cart";
+import { rememberOrder } from "../../src/orders";
+import { formatKobo, nairaToKobo } from "../../src/money";
+import { colors } from "../../src/theme";
 
 const PICKUP_MINUTES = 30;
 

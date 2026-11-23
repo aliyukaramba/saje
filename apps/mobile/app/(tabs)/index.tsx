@@ -1,16 +1,14 @@
 import { useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { router } from "expo-router";
-import { fetchMenu, type Menu, type MenuItem } from "../src/api";
-import { addLine, useCart } from "../src/cart";
-import { colors } from "../src/theme";
+import { fetchMenu, type Menu, type MenuItem } from "../../src/api";
+import { addLine } from "../../src/cart";
+import { colors } from "../../src/theme";
 
 export default function MenuScreen() {
   const [menu, setMenu] = useState<Menu | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [categoryId, setCategoryId] = useState<string | "all">("all");
-  const cart = useCart();
-  const count = cart.reduce((sum, l) => sum + l.quantity, 0);
 
   useEffect(() => {
     fetchMenu()
@@ -29,18 +27,8 @@ export default function MenuScreen() {
   return (
     <View style={styles.screen}>
       <View style={styles.topRow}>
-        <View>
-          <Text style={styles.heading}>Our menu</Text>
-          <Text style={styles.muted}>Pick a dish to see its sizes and extras</Text>
-        </View>
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          <Pressable style={styles.ghostButton} onPress={() => router.push("/orders")} accessibilityRole="button">
-            <Text style={styles.ghostText}>Orders</Text>
-          </Pressable>
-          <Pressable style={styles.cartButton} onPress={() => router.push("/cart")} accessibilityRole="button" accessibilityLabel={`Your order, ${count} items`}>
-            <Text style={styles.cartButtonText}>Cart · {count}</Text>
-          </Pressable>
-        </View>
+        <Text style={styles.heading}>Our menu</Text>
+        <Text style={styles.muted}>Pick a dish to see its sizes and extras</Text>
       </View>
 
       <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.chipRow} contentContainerStyle={styles.chipRowContent}>
@@ -104,8 +92,8 @@ function Centered({ children }: { children: React.ReactNode }) {
 
 const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.canvas },
-  topRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", paddingHorizontal: 16, paddingTop: 12, gap: 8 },
-  heading: { fontSize: 26, fontWeight: "800", color: colors.ink },
+  topRow: { paddingHorizontal: 16, paddingTop: 8, gap: 2 },
+  heading: { fontSize: 28, fontWeight: "800", color: colors.ink },
   muted: { color: colors.muted, fontSize: 13 },
   cartButton: { backgroundColor: colors.brand, borderRadius: 999, paddingHorizontal: 14, paddingVertical: 9 },
   cartButtonText: { color: colors.brandInk, fontWeight: "700" },
