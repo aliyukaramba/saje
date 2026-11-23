@@ -97,11 +97,17 @@ export function TopifyCheckoutModal({
         <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
         <View style={styles.header}>
           <View style={styles.heading}>
-            <Text style={styles.title}>Secure checkout</Text>
-            <Text style={styles.subtitle}>Order {orderNumber} · Powered by Topify</Text>
+            <View style={styles.brandLine}>
+              <View style={styles.brandMark}><Ionicons name="restaurant" size={13} color="#fff" /></View>
+              <Text style={styles.brandName}>SAJE</Text>
+              <View style={styles.headerDivider} />
+              <Text style={styles.headerEyebrow}>CHECKOUT</Text>
+            </View>
+            <Text style={styles.title}>Almost there.</Text>
+            <Text style={styles.subtitle}>Order {orderNumber} · Secure payment by Topify</Text>
           </View>
           <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close checkout" style={styles.closeButton}>
-            <Ionicons name="close" size={22} color={colors.ink} />
+            <Ionicons name="close" size={20} color={colors.ink} />
           </Pressable>
         </View>
 
@@ -130,11 +136,12 @@ export function TopifyCheckoutModal({
         ) : (
           <View style={styles.webContainer}>
             <View style={styles.statusBar}>
-              <View style={styles.statusDot} />
-              <Text style={styles.statusText}>
-                {returning ? "Verifying your payment…" : "Complete payment securely"}
-              </Text>
-              {loading || paymentStatus === "CHECKING" ? <ActivityIndicator size="small" color={colors.brand} /> : null}
+              <View style={styles.statusIcon}><Ionicons name="lock-closed" size={13} color={colors.brand} /></View>
+              <View style={styles.statusCopy}>
+                <Text style={styles.statusTitle}>{returning ? "Confirming your payment" : "Secure payment"}</Text>
+                <Text style={styles.statusText}>{returning ? "Please wait while we verify your transaction" : "Your payment details are protected"}</Text>
+              </View>
+              {loading || paymentStatus === "CHECKING" ? <ActivityIndicator size="small" color={colors.brand} /> : <View style={styles.liveBadge}><View style={styles.liveDot} /><Text style={styles.liveText}>LIVE</Text></View>}
             </View>
             {webError ? (
               <View style={styles.webError}>
@@ -154,6 +161,7 @@ export function TopifyCheckoutModal({
                 </Pressable>
               </View>
             ) : (
+              <View style={styles.webFrame}>
               <WebView
                 key={reloadKey}
                 source={{ uri: checkoutUrl }}
@@ -243,10 +251,11 @@ export function TopifyCheckoutModal({
                   if (navigation.url.includes("/checkout/return")) setReturning(true);
                 }}
               />
+              </View>
             )}
             <View style={styles.footer}>
-              <Ionicons name="shield-checkmark-outline" size={16} color={colors.brand} />
-              <Text style={styles.footerText}>Payment is confirmed by SAJE's server, not by the redirect page.</Text>
+              <View style={styles.footerIcon}><Ionicons name="shield-checkmark" size={14} color={colors.brand} /></View>
+              <Text style={styles.footerText}>SAJE verifies every payment securely. Never share your PIN or OTP.</Text>
             </View>
           </View>
         )}
@@ -259,45 +268,61 @@ export function TopifyCheckoutModal({
 const styles = StyleSheet.create({
   safeArea: { flex: 1, backgroundColor: colors.canvas },
   header: {
-    minHeight: 68,
-    paddingHorizontal: 18,
+    paddingTop: 12,
+    paddingBottom: 18,
+    paddingHorizontal: 20,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "space-between",
-    backgroundColor: colors.surface,
-    borderBottomWidth: 1,
-    borderBottomColor: colors.line,
+    backgroundColor: colors.canvas,
   },
-  heading: { gap: 3 },
-  title: { color: colors.ink, fontSize: 18, fontWeight: "800" },
-  subtitle: { color: colors.muted, fontSize: 12 },
-  closeButton: { width: 40, height: 40, borderRadius: 20, alignItems: "center", justifyContent: "center", backgroundColor: colors.canvas },
-  webContainer: { flex: 1 },
+  heading: { flex: 1, gap: 5 },
+  brandLine: { flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 3 },
+  brandMark: { width: 22, height: 22, borderRadius: 8, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center" },
+  brandName: { color: colors.brand, fontSize: 11, fontWeight: "900", letterSpacing: 1.5 },
+  headerDivider: { width: 1, height: 12, backgroundColor: colors.line, marginHorizontal: 2 },
+  headerEyebrow: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 1.4 },
+  title: { color: colors.ink, fontSize: 25, fontWeight: "900", letterSpacing: -0.7 },
+  subtitle: { color: colors.muted, fontSize: 12, fontWeight: "500" },
+  closeButton: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, marginLeft: 12 },
+  webContainer: { flex: 1, paddingHorizontal: 12, paddingTop: 4, paddingBottom: 8, gap: 10 },
   statusBar: {
-    minHeight: 42,
-    paddingHorizontal: 16,
+    minHeight: 66,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     flexDirection: "row",
     alignItems: "center",
-    gap: 9,
+    gap: 11,
     backgroundColor: colors.surface,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: colors.line,
   },
-  statusDot: { width: 7, height: 7, borderRadius: 4, backgroundColor: colors.brand },
-  statusText: { flex: 1, color: colors.ink, fontSize: 13, fontWeight: "600" },
+  statusIcon: { width: 34, height: 34, borderRadius: 12, backgroundColor: "#eaf3f1", alignItems: "center", justifyContent: "center" },
+  statusCopy: { flex: 1, gap: 3 },
+  statusTitle: { color: colors.ink, fontSize: 13, fontWeight: "800" },
+  statusText: { color: colors.muted, fontSize: 11, fontWeight: "500" },
+  liveBadge: { flexDirection: "row", alignItems: "center", gap: 5, backgroundColor: "#eaf3f1", paddingHorizontal: 9, paddingVertical: 6, borderRadius: 999 },
+  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: colors.brand },
+  liveText: { color: colors.brand, fontSize: 9, fontWeight: "900", letterSpacing: 0.8 },
+  webFrame: { flex: 1, overflow: "hidden", borderRadius: 22, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface },
   webView: { flex: 1, backgroundColor: colors.surface },
   footer: {
     minHeight: 42,
-    paddingHorizontal: 14,
+    paddingHorizontal: 12,
     flexDirection: "row",
     alignItems: "center",
     justifyContent: "center",
-    gap: 7,
+    gap: 8,
     backgroundColor: colors.surface,
-    borderTopWidth: 1,
-    borderTopColor: colors.line,
+    borderRadius: 14,
+    borderWidth: 1,
+    borderColor: colors.line,
   },
-  footerText: { color: colors.muted, fontSize: 11, flexShrink: 1, textAlign: "center" },
-  result: { flex: 1, padding: 28, alignItems: "center", justifyContent: "center", gap: 14 },
-  successIcon: { width: 72, height: 72, borderRadius: 36, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center" },
+  footerIcon: { width: 24, height: 24, borderRadius: 8, backgroundColor: "#eaf3f1", alignItems: "center", justifyContent: "center" },
+  footerText: { color: colors.muted, fontSize: 10, flexShrink: 1, textAlign: "left", lineHeight: 15 },
+  result: { flex: 1, margin: 16, padding: 28, alignItems: "center", justifyContent: "center", gap: 14, backgroundColor: colors.surface, borderRadius: 28, borderWidth: 1, borderColor: colors.line },
+  successIcon: { width: 82, height: 82, borderRadius: 28, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center" },
   failureIcon: { width: 64, height: 64, borderRadius: 32, backgroundColor: "#fdecea", alignItems: "center", justifyContent: "center" },
   resultTitle: { color: colors.ink, fontSize: 21, fontWeight: "800", textAlign: "center" },
   resultText: { color: colors.muted, fontSize: 14, lineHeight: 21, textAlign: "center", maxWidth: 340 },
