@@ -97,14 +97,8 @@ export function TopifyCheckoutModal({
         <SafeAreaView style={styles.safeArea} edges={["top", "bottom"]}>
         <View style={styles.header}>
           <View style={styles.heading}>
-            <View style={styles.brandLine}>
-              <View style={styles.brandMark}><Ionicons name="restaurant" size={13} color="#fff" /></View>
-              <Text style={styles.brandName}>SAJE</Text>
-              <View style={styles.headerDivider} />
-              <Text style={styles.headerEyebrow}>CHECKOUT</Text>
-            </View>
-            <Text style={styles.title}>Almost there.</Text>
-            <Text style={styles.subtitle}>Order {orderNumber} · Secure payment by Topify</Text>
+            <Text style={styles.title}>Secure checkout</Text>
+            <Text style={styles.subtitle}>Order {orderNumber} · Powered by Topify</Text>
           </View>
           <Pressable onPress={onClose} accessibilityRole="button" accessibilityLabel="Close checkout" style={styles.closeButton}>
             <Ionicons name="close" size={20} color={colors.ink} />
@@ -277,12 +271,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.canvas,
   },
   heading: { flex: 1, gap: 5 },
-  brandLine: { flexDirection: "row", alignItems: "center", gap: 7, marginBottom: 3 },
-  brandMark: { width: 22, height: 22, borderRadius: 8, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center" },
-  brandName: { color: colors.brand, fontSize: 11, fontWeight: "900", letterSpacing: 1.5 },
-  headerDivider: { width: 1, height: 12, backgroundColor: colors.line, marginHorizontal: 2 },
-  headerEyebrow: { color: colors.muted, fontSize: 10, fontWeight: "800", letterSpacing: 1.4 },
-  title: { color: colors.ink, fontSize: 25, fontWeight: "900", letterSpacing: -0.7 },
+  title: { color: colors.ink, fontSize: 21, fontWeight: "800" },
   subtitle: { color: colors.muted, fontSize: 12, fontWeight: "500" },
   closeButton: { width: 42, height: 42, borderRadius: 21, alignItems: "center", justifyContent: "center", backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, marginLeft: 12 },
   webContainer: { flex: 1, paddingHorizontal: 12, paddingTop: 4, paddingBottom: 8, gap: 10 },
