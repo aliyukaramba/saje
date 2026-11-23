@@ -2,7 +2,6 @@ import { useEffect, useState } from "react";
 import { ActivityIndicator, Dimensions, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { BlurView } from "expo-blur";
 import { fetchMenu, type MenuItem, type OptionGroup } from "../../src/api";
 import { addLine } from "../../src/cart";
 import { useOptionChoice } from "../../src/options";
@@ -113,14 +112,15 @@ export default function DishScreen() {
       <Stack.Screen options={{ headerShown: false }} />
 
       {item.imageUrl ? (
-        <Image source={{ uri: item.imageUrl }} style={styles.photo} />
+        <Image source={{ uri: item.imageUrl }} style={styles.photo} resizeMode="cover" />
       ) : (
         <View style={[styles.photo, { backgroundColor: colors.line }]} />
       )}
 
-      <ScrollView contentContainerStyle={{ paddingTop: PHOTO_HEIGHT - 36, paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
+      <ScrollView contentContainerStyle={{ paddingTop: PHOTO_HEIGHT - 34, paddingBottom: 178 }} showsVerticalScrollIndicator={false} bounces>
         <View style={styles.sheet}>
           <View style={styles.handle} />
+          <Text style={styles.eyebrow}>MADE FRESH FOR YOU</Text>
           <View style={styles.titleRow}>
             <Text style={styles.title} numberOfLines={2}>
               <Text style={styles.titleBold}>{first}</Text>
@@ -132,7 +132,7 @@ export default function DishScreen() {
 
           {choice.options && choice.options.variants.length > 0 ? (
             <View style={{ gap: 10 }}>
-              <Text style={styles.section}>Try these quick choices</Text>
+              <Text style={styles.section}>Choose your preference</Text>
               <View style={styles.pillRow}>
                 {choice.options.variants.map((v) => (
                   <Pill
@@ -172,7 +172,7 @@ export default function DishScreen() {
 
           {related.length > 0 ? (
             <View style={{ gap: 10 }}>
-              <Text style={styles.section}>Often order with</Text>
+              <Text style={styles.section}>You may also like</Text>
               <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
                 {related.map((r) => (
                   <Pressable key={r.id} style={styles.relatedCard} onPress={() => router.replace(`/dish/${r.id}`)} accessibilityRole="button" accessibilityLabel={r.name}>
@@ -198,15 +198,22 @@ export default function DishScreen() {
         </View>
       </View>
 
-      {/* Floating row: no bar behind it. The glass sits on the buttons, as in the reference. */}
-      <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 14 }]} pointerEvents="box-none">
-        <Pressable style={styles.outlineButton} onPress={() => add(false)} accessibilityRole="button">
-          <BlurView intensity={70} tint="light" style={StyleSheet.absoluteFill} />
-          <View style={[StyleSheet.absoluteFill, styles.glassFill]} />
-          <Text style={styles.outlineText}>Add to cart</Text>
+      <View style={[styles.bottomBar, { paddingBottom: Math.max(insets.bottom, 12) }]}>
+        <Pressable
+          style={({ pressed }) => [styles.addButton, pressed && styles.buttonPressed]}
+          onPress={() => add(false)}
+          accessibilityRole="button"
+          accessibilityLabel="Add this dish to cart"
+        >
+          <Text style={styles.addButtonText}>Add to cart</Text>
         </Pressable>
-        <Pressable style={styles.solidButton} onPress={() => add(true)} accessibilityRole="button">
-          <Text style={styles.solidText}>Order</Text>
+        <Pressable
+          style={({ pressed }) => [styles.orderButton, pressed && styles.buttonPressed]}
+          onPress={() => add(true)}
+          accessibilityRole="button"
+          accessibilityLabel="Order this dish now"
+        >
+          <Text style={styles.orderButtonText}>Order now</Text>
         </Pressable>
       </View>
     </View>
@@ -231,32 +238,32 @@ const styles = StyleSheet.create({
   centered: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: colors.canvas },
   photo: { position: "absolute", top: 0, left: 0, right: 0, height: PHOTO_HEIGHT },
   topButtons: { position: "absolute", zIndex: 30, elevation: 30, top: 0, left: 16, right: 16, flexDirection: "row", justifyContent: "space-between" },
-  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 22, paddingTop: 12, gap: 16, minHeight: "100%" },
-  handle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: colors.line, marginBottom: 4 },
+  sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 30, borderTopRightRadius: 30, paddingHorizontal: 22, paddingTop: 14, paddingBottom: 28, gap: 18, minHeight: "100%" },
+  handle: { alignSelf: "center", width: 38, height: 4, borderRadius: 2, backgroundColor: colors.line, marginBottom: 0 },
+  eyebrow: { color: colors.brand, fontSize: 10, fontWeight: "800", letterSpacing: 1.5, marginTop: -4 },
   titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 },
-  title: { flex: 1, fontSize: 26, color: colors.ink },
+  title: { flex: 1, fontSize: 28, lineHeight: 34, color: colors.ink, letterSpacing: -0.7 },
   titleBold: { fontWeight: "800" },
   titleLight: { fontWeight: "300" },
-  price: { fontSize: 22, fontWeight: "800", color: colors.brand },
-  description: { color: colors.muted, fontSize: 15, lineHeight: 22 },
-  section: { fontSize: 16, fontWeight: "700", color: colors.ink, marginTop: 4 },
+  price: { fontSize: 21, fontWeight: "800", color: colors.brand, letterSpacing: -0.4, paddingTop: 3 },
+  description: { color: colors.muted, fontSize: 14, lineHeight: 22 },
+  section: { fontSize: 15, fontWeight: "800", color: colors.ink, marginTop: 2, letterSpacing: -0.2 },
   muted: { color: colors.muted, fontSize: 13 },
   pillRow: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
-  pill: { borderRadius: 999, borderWidth: 1, borderColor: colors.line, backgroundColor: colors.surface, paddingHorizontal: 16, paddingVertical: 9 },
+  pill: { borderRadius: 999, borderWidth: 1, borderColor: colors.line, backgroundColor: "#fafafa", paddingHorizontal: 15, paddingVertical: 10 },
   pillSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
   pillText: { color: colors.ink, fontWeight: "600", fontSize: 14 },
   error: { color: colors.danger, fontSize: 14, textAlign: "center" },
   retryButton: { marginTop: 14, borderRadius: 999, backgroundColor: colors.ink, paddingHorizontal: 22, paddingVertical: 12 },
   retryText: { color: colors.surface, fontWeight: "700" },
-  relatedCard: { width: 116, gap: 4 },
-  relatedPhoto: { width: 116, height: 100, borderRadius: 18 },
+  relatedCard: { width: 124, gap: 5, marginRight: 2 },
+  relatedPhoto: { width: 124, height: 104, borderRadius: 16, backgroundColor: colors.canvas },
   relatedName: { fontSize: 13, fontWeight: "600", color: colors.ink },
   relatedPrice: { fontSize: 12, fontWeight: "700", color: colors.brand },
-  bottomBar: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingTop: 14 },
-  outlineButton: { flex: 1, borderRadius: 999, borderWidth: 1, borderColor: "rgba(255,255,255,0.9)", paddingVertical: 15, alignItems: "center", overflow: "hidden", shadowColor: "#000", shadowOpacity: 0.08, shadowRadius: 12, shadowOffset: { width: 0, height: 4 }, elevation: 2 },
-  // Light, see-through white over the blur, matching TopBar.
-  glassFill: { backgroundColor: "rgba(255,255,255,0.45)" },
-  outlineText: { color: colors.ink, fontWeight: "700" },
-  solidButton: { flex: 1, borderRadius: 999, backgroundColor: colors.ink, paddingVertical: 15, alignItems: "center" },
-  solidText: { color: colors.surface, fontWeight: "700" },
+  bottomBar: { position: "absolute", zIndex: 20, elevation: 20, left: 0, right: 0, bottom: 0, flexDirection: "row", gap: 12, paddingHorizontal: 18, paddingTop: 14, backgroundColor: colors.surface, borderTopWidth: 1, borderTopColor: "#eeeeef", shadowColor: "#000", shadowOpacity: 0.07, shadowRadius: 16, shadowOffset: { width: 0, height: -5 } },
+  addButton: { flex: 1, minHeight: 54, borderRadius: 17, backgroundColor: "#e8f1ef", borderWidth: 1, borderColor: "#c9ddda", alignItems: "center", justifyContent: "center", paddingHorizontal: 12 },
+  addButtonText: { color: colors.brand, fontSize: 15, fontWeight: "800" },
+  orderButton: { flex: 1, minHeight: 54, borderRadius: 17, backgroundColor: colors.brand, alignItems: "center", justifyContent: "center", paddingHorizontal: 12, shadowColor: colors.brand, shadowOpacity: 0.2, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 3 },
+  orderButtonText: { color: colors.surface, fontSize: 15, fontWeight: "800" },
+  buttonPressed: { opacity: 0.82, transform: [{ scale: 0.985 }] },
 });
