@@ -41,7 +41,7 @@ const styles = StyleSheet.create({
   closePlaceholder: { width: 40 },
   topTitle: { color: colors.ink, fontSize: 16, fontWeight: "800" },
   cameraWrap: { flex: 1, marginHorizontal: 16, marginTop: 10, borderRadius: 28, overflow: "hidden", backgroundColor: "#171717" },
-  overlay: { ...StyleSheet.absoluteFillObject, alignItems: "center", justifyContent: "center" },
+  overlay: { ...StyleSheet.absoluteFill, alignItems: "center", justifyContent: "center" },
   scanFrame: { width: 250, height: 250, position: "relative" },
   cornerTL: { position: "absolute", top: 0, left: 0, width: 34, height: 34, borderTopWidth: 5, borderLeftWidth: 5, borderColor: "#fff", borderTopLeftRadius: 12 },
   cornerTR: { position: "absolute", top: 0, right: 0, width: 34, height: 34, borderTopWidth: 5, borderRightWidth: 5, borderColor: "#fff", borderTopRightRadius: 12 },
