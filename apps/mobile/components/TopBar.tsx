@@ -33,10 +33,12 @@ export function TopBar({ title = "", showBack = false }: { title?: string; showB
 
 export function GlassButton({ icon, label, onPress, badge }: { icon: React.ComponentProps<typeof Ionicons>["name"]; label: string; onPress: () => void; badge?: number }) {
   return (
-    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={styles.round}>
-      <BlurView intensity={60} tint="light" style={StyleSheet.absoluteFill} />
-      <View style={styles.roundFill} />
-      <Ionicons name={icon} size={20} color={colors.ink} />
+    <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={styles.wrap}>
+      <View style={styles.round}>
+        <BlurView intensity={60} tint="light" style={StyleSheet.absoluteFill} />
+        <View style={styles.roundFill} />
+        <Ionicons name={icon} size={20} color={colors.ink} />
+      </View>
       {badge ? (
         <View style={styles.badge}>
           <Text style={styles.badgeText}>{badge}</Text>
@@ -51,8 +53,9 @@ const styles = StyleSheet.create({
   side: { width: 56, justifyContent: "center" },
   brand: { fontSize: 22, fontWeight: "800", color: colors.ink },
   title: { flex: 1, textAlign: "center", fontSize: 17, fontWeight: "700", color: colors.ink },
-  round: { width: 44, height: 44, borderRadius: 22, overflow: "hidden", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.7)" },
+  wrap: { width: 44, height: 44 },
+  round: { width: 44, height: 44, borderRadius: 22, overflow: "hidden", alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: "rgba(255,255,255,0.8)" },
   roundFill: { ...StyleSheet.absoluteFill, backgroundColor: "rgba(255,255,255,0.45)" },
-  badge: { position: "absolute", top: -4, right: -4, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
+  badge: { position: "absolute", top: -3, right: -3, minWidth: 20, height: 20, borderRadius: 10, backgroundColor: colors.ink, alignItems: "center", justifyContent: "center", paddingHorizontal: 4 },
   badgeText: { color: colors.surface, fontSize: 11, fontWeight: "700" },
 });

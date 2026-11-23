@@ -25,6 +25,7 @@ export default function TabsLayout() {
         tabBarStyle: styles.bar,
         tabBarBackground: () => <BlurView intensity={70} tint="light" style={[StyleSheet.absoluteFill, styles.glass]} />,
         tabBarItemStyle: styles.item,
+        tabBarIconStyle: { width: 46, height: 46 },
       }}
     >
       <Tabs.Screen
@@ -50,16 +51,18 @@ const styles = StyleSheet.create({
     right: 40,
     bottom: 26,
     height: 70,
+    paddingTop: 0,
+    paddingBottom: 0,
     borderRadius: 35,
     borderTopWidth: 0,
-    backgroundColor: "transparent",
+    backgroundColor: "rgba(255,255,255,0.7)",
     elevation: 0,
     overflow: "hidden",
     borderWidth: 1,
     borderColor: "rgba(255,255,255,0.7)",
   },
-  glass: { backgroundColor: "rgba(255,255,255,0.55)" },
-  item: { alignItems: "center", justifyContent: "center", paddingTop: 0 },
+  glass: { backgroundColor: "rgba(255,255,255,0.7)" },
+  item: { height: 70, alignItems: "center", justifyContent: "center", paddingTop: 0, paddingBottom: 0 },
   iconWrap: { width: 46, height: 46, borderRadius: 23, alignItems: "center", justifyContent: "center" },
   iconActive: { backgroundColor: colors.ink },
 });
