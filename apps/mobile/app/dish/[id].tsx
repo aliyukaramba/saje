@@ -24,7 +24,24 @@ export default function DishScreen() {
   const [error, setError] = useState<string | null>(null);
   const choice = useOptionChoice(item);
   const [fav, setFav] = useState(false);
+  const [favBusy, setFavBusy] = useState(false);
   const [related, setRelated] = useState<MenuItem[]>([]);
+
+  function goBack() {
+    if (router.canGoBack()) router.back();
+    else router.replace("/(tabs)");
+  }
+
+  async function handleToggleFavourite() {
+    if (favBusy) return;
+    setFavBusy(true);
+    try {
+      const next = await toggleFavourite(id);
+      setFav(next);
+    } finally {
+      setFavBusy(false);
+    }
+  }
 
   useEffect(() => {
     void isFavourite(id).then(setFav);
@@ -88,7 +105,7 @@ export default function DishScreen() {
     }
     addLine(built.line);
     if (thenOpenCart) router.push("/cart");
-    else router.back();
+    else goBack();
   }
 
   return (
@@ -100,15 +117,6 @@ export default function DishScreen() {
       ) : (
         <View style={[styles.photo, { backgroundColor: colors.line }]} />
       )}
-
-      <View style={[styles.topButtons, { paddingTop: insets.top + 8 }]}>
-        <GlassButton icon="chevron-back" label="Back" onPress={() => router.back()} />
-        <GlassButton
-          icon={fav ? "heart" : "heart-outline"}
-          label={fav ? "Remove from favourites" : "Add to favourites"}
-          onPress={() => void toggleFavourite(id).then(setFav)}
-        />
-      </View>
 
       <ScrollView contentContainerStyle={{ paddingTop: PHOTO_HEIGHT - 36, paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
         <View style={styles.sheet}>
@@ -179,6 +187,17 @@ export default function DishScreen() {
         </View>
       </ScrollView>
 
+      <View style={[styles.topButtons, { paddingTop: insets.top + 8 }]} pointerEvents="box-none">
+        <GlassButton icon="chevron-back" label="Back" onPress={goBack} />
+        <View pointerEvents="auto">
+          <GlassButton
+            icon={fav ? "heart" : "heart-outline"}
+            label={fav ? "Remove from favourites" : "Add to favourites"}
+            onPress={() => void handleToggleFavourite()}
+          />
+        </View>
+      </View>
+
       {/* Floating row: no bar behind it. The glass sits on the buttons, as in the reference. */}
       <View style={[styles.bottomBar, { paddingBottom: insets.bottom + 14 }]} pointerEvents="box-none">
         <Pressable style={styles.outlineButton} onPress={() => add(false)} accessibilityRole="button">
@@ -211,7 +230,7 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.canvas },
   centered: { flex: 1, alignItems: "center", justifyContent: "center", padding: 24, backgroundColor: colors.canvas },
   photo: { position: "absolute", top: 0, left: 0, right: 0, height: PHOTO_HEIGHT },
-  topButtons: { position: "absolute", top: 0, left: 16, right: 16, flexDirection: "row", justifyContent: "space-between" },
+  topButtons: { position: "absolute", zIndex: 30, elevation: 30, top: 0, left: 16, right: 16, flexDirection: "row", justifyContent: "space-between" },
   sheet: { backgroundColor: colors.surface, borderTopLeftRadius: 32, borderTopRightRadius: 32, padding: 22, paddingTop: 12, gap: 16, minHeight: "100%" },
   handle: { alignSelf: "center", width: 40, height: 4, borderRadius: 2, backgroundColor: colors.line, marginBottom: 4 },
   titleRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start", gap: 12 },
