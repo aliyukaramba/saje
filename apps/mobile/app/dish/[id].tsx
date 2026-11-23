@@ -8,6 +8,7 @@ import { addLine } from "../../src/cart";
 import { useOptionChoice } from "../../src/options";
 import { formatKobo } from "../../src/money";
 import { colors } from "../../src/theme";
+import { isFavourite, toggleFavourite } from "../../src/favourites";
 import { GlassButton } from "../../components/TopBar";
 
 const PHOTO_HEIGHT = Dimensions.get("window").height * 0.52;
@@ -19,13 +20,27 @@ export default function DishScreen() {
   const [notFound, setNotFound] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const choice = useOptionChoice(item);
+  const [fav, setFav] = useState(false);
+  const [related, setRelated] = useState<MenuItem[]>([]);
+
+  useEffect(() => {
+    void isFavourite(id).then(setFav);
+  }, [id]);
 
   useEffect(() => {
     fetchMenu()
       .then((m) => {
         const found = m.items.find((i) => i.id === id);
-        if (found) setItem(found);
-        else setNotFound(true);
+        if (found) {
+          setItem(found);
+          setRelated(
+            m.items
+              .filter((i) => i.isAvailable && i.categoryId === found.categoryId && i.id !== found.id)
+              .slice(0, 8),
+          );
+        } else {
+          setNotFound(true);
+        }
       })
       .catch(() => setNotFound(true));
   }, [id]);
@@ -63,6 +78,11 @@ export default function DishScreen() {
 
       <View style={[styles.topButtons, { paddingTop: insets.top + 8 }]}>
         <GlassButton icon="chevron-back" label="Back" onPress={() => router.back()} />
+        <GlassButton
+          icon={fav ? "heart" : "heart-outline"}
+          label={fav ? "Remove from favourites" : "Add to favourites"}
+          onPress={() => void toggleFavourite(id).then(setFav)}
+        />
       </View>
 
       <ScrollView contentContainerStyle={{ paddingTop: PHOTO_HEIGHT - 36, paddingBottom: 150 }} showsVerticalScrollIndicator={false}>
@@ -79,7 +99,7 @@ export default function DishScreen() {
 
           {choice.options && choice.options.variants.length > 0 ? (
             <View style={{ gap: 10 }}>
-              <Text style={styles.section}>Size</Text>
+              <Text style={styles.section}>Try these quick choices</Text>
               <View style={styles.pillRow}>
                 {choice.options.variants.map((v) => (
                   <Pill
@@ -116,6 +136,21 @@ export default function DishScreen() {
           ))}
 
           {error ? <Text style={styles.error}>{error}</Text> : null}
+
+          {related.length > 0 ? (
+            <View style={{ gap: 10 }}>
+              <Text style={styles.section}>Often order with</Text>
+              <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 12 }}>
+                {related.map((r) => (
+                  <Pressable key={r.id} style={styles.relatedCard} onPress={() => router.replace(`/dish/${r.id}`)} accessibilityRole="button" accessibilityLabel={r.name}>
+                    {r.imageUrl ? <Image source={{ uri: r.imageUrl }} style={styles.relatedPhoto} /> : <View style={[styles.relatedPhoto, { backgroundColor: colors.line }]} />}
+                    <Text style={styles.relatedName} numberOfLines={1}>{r.name}</Text>
+                    <Text style={styles.relatedPrice}>{r.discountPrice ?? r.price}</Text>
+                  </Pressable>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
         </View>
       </ScrollView>
 
@@ -164,6 +199,10 @@ const styles = StyleSheet.create({
   pillSelected: { backgroundColor: colors.ink, borderColor: colors.ink },
   pillText: { color: colors.ink, fontWeight: "600", fontSize: 14 },
   error: { color: colors.danger, fontSize: 14 },
+  relatedCard: { width: 116, gap: 4 },
+  relatedPhoto: { width: 116, height: 100, borderRadius: 18 },
+  relatedName: { fontSize: 13, fontWeight: "600", color: colors.ink },
+  relatedPrice: { fontSize: 12, fontWeight: "700", color: colors.brand },
   bottomBar: { position: "absolute", left: 0, right: 0, bottom: 0, flexDirection: "row", gap: 10, paddingHorizontal: 16, paddingTop: 14, overflow: "hidden", backgroundColor: "rgba(255,255,255,0.6)" },
   outlineButton: { flex: 1, borderRadius: 999, borderWidth: 1.5, borderColor: colors.ink, paddingVertical: 15, alignItems: "center", backgroundColor: colors.surface },
   outlineText: { color: colors.ink, fontWeight: "700" },
