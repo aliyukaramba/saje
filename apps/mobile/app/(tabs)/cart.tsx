@@ -211,7 +211,7 @@ export default function CartScreen() {
       <View style={styles.panel}>
         {optionsLoading ? <InlineNotice icon="time-outline" text="Loading pickup and delivery options…" /> : null}
         {optionsError ? (
-          <View style={styles.noticeError}>
+          <View style={styles.formError}>
             <Text style={styles.error}>{optionsError}</Text>
             <Pressable style={styles.retryButton} onPress={() => setOptionsRetry((value) => value + 1)} accessibilityRole="button">
               <Text style={styles.retryButtonText}>Try again</Text>
