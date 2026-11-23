@@ -177,7 +177,7 @@ export default function CartScreen() {
             <SwipeRow onDelete={() => removeLine(l.lineKey)}>
               <View style={styles.line}>
                 {l.imageUrl ? (
-                  <Image source={{ uri: l.imageUrl }} style={styles.thumb} />
+                  <Image source={{ uri: l.imageUrl }} style={{ width: 76, height: 76, borderRadius: 17, backgroundColor: colors.canvas }} />
                 ) : (
                   <View style={[styles.thumb, styles.thumbFallback]}>
                     <Ionicons name="restaurant-outline" size={25} color={colors.muted} />
@@ -385,7 +385,7 @@ const styles = StyleSheet.create({
   thumb: { width: 76, height: 76, borderRadius: 17, backgroundColor: colors.canvas },
   thumbFallback: { alignItems: "center", justifyContent: "center" },
   lineInfo: { flex: 1, gap: 4, minWidth: 0 },
-  name: { fontSize: 14, fontWeight: "750", color: colors.ink },
+  name: { fontSize: 14, fontWeight: "700", color: colors.ink },
   optionLabel: { color: colors.muted, fontSize: 11, lineHeight: 15 },
   price: { fontSize: 14, fontWeight: "800", color: colors.brand, marginTop: 2 },
   stepper: { flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.canvas, borderRadius: 999, padding: 4 },
