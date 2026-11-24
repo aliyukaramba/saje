@@ -8,6 +8,7 @@ import { AdminLink } from "./AdminLink";
 const GROUPS: { label: string; items: { href: string; label: string; permission: Permission; icon: IconName }[] }[] = [
   { label: "WORKSPACE", items: [
     { href: "/admin/orders", label: "Orders", permission: "orders:read", icon: "orders" },
+    { href: "/admin/notifications", label: "Notifications", permission: "orders:read", icon: "notifications" },
     { href: "/admin/receipts", label: "Receipts", permission: "orders:read", icon: "receipts" },
     { href: "/admin/kitchen", label: "Kitchen", permission: "kitchen:view", icon: "kitchen" },
     { href: "/admin/pos", label: "Point of sale", permission: "pos:sell", icon: "counter" },
