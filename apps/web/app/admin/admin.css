@@ -201,3 +201,255 @@
     animation-iteration-count: 1 !important; transition-duration: .01ms !important;
   }
 }
+
+
+/* ===== Admin refinement pass: every panel gets a deliberate surface and every action stays compact. ===== */
+.admin-layout {
+  --admin-shadow: 0 1px 2px rgba(18, 18, 22, .025), 0 8px 24px rgba(18, 18, 22, .035);
+  --admin-shadow-hover: 0 10px 30px rgba(18, 18, 22, .07);
+}
+.admin-layout .admin-main > *,
+.admin-layout .admin-main > div,
+.admin-layout .admin-main .shell,
+.admin-layout .admin-main .menu-admin { min-width: 0; }
+
+/* Standard panels, list cards, empty states and nested management sections. */
+.admin-layout .card,
+.admin-layout li.card,
+.admin-layout section.card,
+.admin-layout .menu-admin .menu-card,
+.admin-layout .menu-admin .menu-side > section {
+  background: var(--admin-panel);
+  color: var(--admin-text);
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  box-shadow: var(--admin-shadow);
+}
+.admin-layout .card {
+  padding: 19px;
+  transition: border-color .18s ease, box-shadow .18s ease, transform .18s ease;
+}
+.admin-layout li.card { list-style: none; }
+.admin-layout .card:hover {
+  border-color: color-mix(in srgb, var(--admin-orange) 28%, var(--admin-border));
+  box-shadow: var(--admin-shadow-hover);
+  transform: translateY(-1px);
+}
+.admin-layout .card > :first-child { min-width: 0; }
+.admin-layout .card h2,
+.admin-layout .card h3,
+.admin-layout .card h4 {
+  color: var(--admin-text);
+  line-height: 1.35;
+}
+.admin-layout .card p { line-height: 1.55; }
+.admin-layout .empty {
+  margin-top: 14px;
+  padding: 30px 20px;
+  border: 1px dashed var(--admin-border);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--admin-panel) 78%, var(--admin-bg));
+  color: var(--admin-muted);
+}
+.admin-layout .form-error {
+  padding: 11px 13px;
+  border: 1px solid color-mix(in srgb, #d4483b 25%, transparent);
+  border-radius: 9px;
+  background: color-mix(in srgb, #d4483b 7%, var(--admin-panel));
+}
+
+/* Buttons: compact, consistent and content-sized — no accidental full-width CTAs. */
+.admin-layout button,
+.admin-layout .btn-primary,
+.admin-layout .btn-add,
+.admin-layout .pill,
+.admin-layout a.pill {
+  width: auto;
+  max-width: 100%;
+  min-height: 34px;
+  padding: 8px 13px;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: 0;
+  white-space: normal;
+  cursor: pointer;
+}
+.admin-layout .btn-primary,
+.admin-layout button.btn-primary,
+.admin-layout a.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  width: fit-content;
+  min-height: 38px;
+  padding: 9px 15px;
+  background: var(--admin-orange);
+  color: #28170d;
+  border: 1px solid var(--admin-orange);
+  border-radius: 9px;
+  box-shadow: 0 2px 5px rgba(242, 132, 58, .13);
+  font-size: 12px;
+  font-weight: 750;
+  text-decoration: none;
+}
+.admin-layout .btn-primary:hover:not(:disabled) {
+  background: #e9772d;
+  border-color: #e9772d;
+  box-shadow: 0 5px 14px rgba(242, 132, 58, .2);
+  transform: translateY(-1px);
+}
+.admin-layout .btn-primary:disabled,
+.admin-layout button:disabled { opacity: .48; cursor: not-allowed; }
+.admin-layout .btn-add {
+  background: var(--admin-orange);
+  color: #28170d;
+  border: 1px solid var(--admin-orange);
+}
+.admin-layout .pill,
+.admin-layout a.pill,
+.admin-layout button.pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: fit-content;
+  min-height: 32px;
+  padding: 7px 11px;
+  background: var(--admin-panel);
+  color: var(--admin-text);
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  box-shadow: none;
+  font-size: 11px;
+  font-weight: 650;
+  text-decoration: none;
+}
+.admin-layout .pill:hover,
+.admin-layout a.pill:hover,
+.admin-layout button.pill:hover:not(:disabled) {
+  color: #b9551c;
+  background: color-mix(in srgb, var(--admin-orange) 9%, var(--admin-panel));
+  border-color: color-mix(in srgb, var(--admin-orange) 42%, var(--admin-border));
+  transform: translateY(-1px);
+}
+.admin-layout .menu-danger {
+  color: #c43f36 !important;
+  border-color: color-mix(in srgb, #d4483b 28%, var(--admin-border)) !important;
+}
+.admin-layout .menu-danger:hover {
+  background: color-mix(in srgb, #d4483b 8%, var(--admin-panel)) !important;
+}
+.admin-layout .admin-signout-button { width: 100%; }
+.admin-layout .admin-signout { min-width: 0; }
+
+/* Forms retain full-width fields, but submit controls remain compact. */
+.admin-layout .checkout-form { align-items: start; }
+.admin-layout .checkout-form > button,
+.admin-layout .checkout-form > a.btn-primary,
+.admin-layout form > button.btn-primary {
+  justify-self: start;
+  width: fit-content;
+  min-width: 104px;
+}
+.admin-layout .checkout-form input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.admin-layout .checkout-form select,
+.admin-layout .checkout-form textarea {
+  width: 100%;
+  min-width: 0;
+  min-height: 40px;
+  padding: 10px 12px;
+  border: 1px solid var(--admin-border);
+  border-radius: 9px;
+  background: var(--admin-panel);
+  color: var(--admin-text);
+  box-shadow: none;
+}
+.admin-layout input:focus,
+.admin-layout select:focus,
+.admin-layout textarea:focus {
+  border-color: color-mix(in srgb, var(--admin-orange) 65%, var(--admin-border));
+  outline: 3px solid color-mix(in srgb, var(--admin-orange) 14%, transparent);
+}
+.admin-layout input[type="checkbox"],
+.admin-layout input[type="radio"] {
+  width: 16px;
+  min-height: 16px;
+  height: 16px;
+  accent-color: var(--admin-orange);
+}
+.admin-layout .checkout-form label { width: 100%; }
+.admin-layout .adm-actions { width: auto; align-items: center; }
+.admin-layout .adm-actions > * { flex: 0 0 auto; }
+
+/* Order, delivery, reservation and staff cards. */
+.admin-layout .card > div[style*="justify-content: space-between"] {
+  align-items: center;
+}
+.admin-layout .card ul:not(.menu-cats) {
+  color: var(--admin-text);
+}
+.admin-layout .card li + li { border-color: var(--admin-border); }
+.admin-layout .card form { min-width: 0; }
+.admin-layout .card form button { margin-top: 0; }
+.admin-layout .card .muted,
+.admin-layout .muted { color: var(--admin-muted); }
+.admin-layout .card strong { font-weight: 700; }
+.admin-layout .card .price { color: #c45d24; font-weight: 750; }
+
+/* Product tiles in POS and menu management. */
+.admin-layout .product-grid { grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 13px; }
+.admin-layout .product-grid > li,
+.admin-layout .product-grid .product {
+  min-width: 0;
+  padding: 16px;
+  border: 1px solid var(--admin-border);
+  border-radius: 13px;
+  background: var(--admin-panel);
+  box-shadow: var(--admin-shadow);
+}
+.admin-layout .product h3 { color: var(--admin-text); font-size: 14px; }
+.admin-layout .product .qty { margin-top: 12px; }
+.admin-layout .qty { gap: 9px; }
+.admin-layout .qty button {
+  width: 31px; min-width: 31px; height: 31px; min-height: 31px;
+  padding: 0; border-radius: 8px; font-size: 17px;
+}
+.admin-layout .cart-lines { margin-top: 14px; }
+.admin-layout .cart-line { padding: 14px 16px; }
+.admin-layout .menu-admin .menu-card { overflow: hidden; padding: 0; }
+.admin-layout .menu-admin .menu-actions { display: flex; flex-wrap: wrap; gap: 6px; }
+.admin-layout .menu-admin .menu-actions form { display: inline-flex; }
+.admin-layout .menu-admin .menu-actions .pill { min-height: 30px; padding: 6px 9px; }
+.admin-layout .menu-admin .menu-side { align-content: start; }
+.admin-layout .menu-admin .menu-side > section { padding: 18px; }
+
+/* Tables and dense operational lists. */
+.admin-layout .table-wrap { max-width: 100%; overflow-x: auto; border-radius: 10px; }
+.admin-layout .card table { min-width: 560px; border-collapse: separate; border-spacing: 0; }
+.admin-layout .card th { background: var(--admin-bg); color: var(--admin-muted); }
+.admin-layout .card td, .admin-layout .card th { border-bottom: 1px solid var(--admin-border); }
+.admin-layout .card tr:last-child td { border-bottom: 0; }
+.admin-layout .stat-grid > .card { min-width: 0; }
+.admin-layout .stat-grid .card:not(.stat-hero) { background: var(--admin-panel); }
+.admin-layout .home-split > .card { min-width: 0; }
+.admin-layout .recent-list li { padding: 11px 0; border-bottom: 1px solid var(--admin-border); }
+.admin-layout .recent-list li:last-child { border-bottom: 0; }
+
+/* Small screens: buttons stay content-sized and cards do not overflow. */
+@media (max-width: 639px) {
+  .admin-layout .card { padding: 15px; border-radius: 12px; }
+  .admin-layout .adm-actions { width: auto; }
+  .admin-layout .adm-actions > * { flex: 0 0 auto; }
+  .admin-layout .btn-primary,
+  .admin-layout .pill { width: fit-content; }
+  .admin-layout .product-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .admin-layout .product-grid > li { padding: 12px; }
+  .admin-layout .menu-admin .menu-actions { gap: 5px; }
+}
+@media (max-width: 390px) {
+  .admin-layout .product-grid { grid-template-columns: 1fr; }
+  .admin-layout .admin-main { padding-left: 12px; padding-right: 12px; }
+}
