@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@restaurant/database";
-import { notifyOrderStatusChange } from "../../../../lib/notifications/service";
+import { notifyDeliveryAssigned, notifyOrderStatusChange } from "../../../../lib/notifications/service";
 
 export const dynamic = "force-dynamic";
 
@@ -30,19 +30,23 @@ export async function POST(request: Request) {
     if (!claimed.count) continue;
 
     try {
-      if (event.eventType !== "ORDER_STATUS_CHANGED" || event.aggregateType !== "Order") {
-        await prisma.notificationOutboxEvent.update({
-          where: { id: event.id },
-          data: { status: "PROCESSED", processedAt: new Date(), lastError: null },
-        });
-        processed += 1;
-        continue;
+      if (event.aggregateType !== "Order") {
+        throw new Error("Unsupported notification outbox aggregate.");
       }
-      const payload = event.payload as { fromStatus?: unknown; toStatus?: unknown };
-      if (typeof payload.fromStatus !== "string" || typeof payload.toStatus !== "string") {
-        throw new Error("Outbox order-status payload is invalid.");
+      const payload = event.payload as { fromStatus?: unknown; toStatus?: unknown; driverId?: unknown };
+      if (event.eventType === "ORDER_STATUS_CHANGED") {
+        if (typeof payload.fromStatus !== "string" || typeof payload.toStatus !== "string") {
+          throw new Error("Outbox order-status payload is invalid.");
+        }
+        await notifyOrderStatusChange(event.aggregateId, payload.fromStatus, payload.toStatus);
+      } else if (event.eventType === "DELIVERY_ASSIGNED") {
+        if (typeof payload.driverId !== "string" || !payload.driverId) {
+          throw new Error("Outbox delivery-assignment payload is invalid.");
+        }
+        await notifyDeliveryAssigned(event.aggregateId, payload.driverId);
+      } else {
+        throw new Error(`Unsupported notification event: ${event.eventType}`);
       }
-      await notifyOrderStatusChange(event.aggregateId, payload.fromStatus, payload.toStatus);
       await prisma.notificationOutboxEvent.update({
         where: { id: event.id },
         data: { status: "PROCESSED", processedAt: new Date(), lastError: null },
