@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
+import { notifyOrderStatusChange } from "../../../lib/notifications/service";
 
 function fail(message: string): never {
   redirect(`/admin/driver?error=${encodeURIComponent(message)}`);
@@ -42,6 +43,8 @@ export async function markPickedUp(formData: FormData) {
       data: { orderId: a.orderId, fromStatus: "READY", toStatus: "OUT_FOR_DELIVERY", note: `Picked up by ${staff.user.email}` },
     }),
   ]);
+  try { await notifyOrderStatusChange(a.orderId, "READY", "OUT_FOR_DELIVERY"); }
+  catch (error) { console.error("SAJE delivery pickup notification failed", error); }
   refresh();
 }
 
@@ -64,6 +67,8 @@ export async function markDelivered(formData: FormData) {
       data: { orderId: a.orderId, fromStatus: "OUT_FOR_DELIVERY", toStatus: "COMPLETED", note: `Delivered by ${staff.user.email}` },
     }),
   ]);
+  try { await notifyOrderStatusChange(a.orderId, "OUT_FOR_DELIVERY", "COMPLETED"); }
+  catch (error) { console.error("SAJE delivery completion notification failed", error); }
   refresh();
 }
 
