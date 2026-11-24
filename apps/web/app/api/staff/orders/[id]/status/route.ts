@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { prisma, deductForOrder } from "@restaurant/database";
 import { canTransition, ORDER_STATUSES, type OrderStatus } from "@restaurant/shared";
 import { requestStaff } from "../../../../../../lib/staff-api";
+import { notifyOrderStatusChange } from "../../../../../../lib/notifications/service";
 
 export const dynamic = "force-dynamic";
 
@@ -41,6 +42,13 @@ export async function PATCH(request: Request, context: { params: Promise<{ id: s
   });
 
   if (to === "ACCEPTED") await deductForOrder(prisma, id);
+
+  // Notifications must never make a successfully saved kitchen transition fail.
+  try {
+    await notifyOrderStatusChange(id, order.status, to as OrderStatus);
+  } catch (error) {
+    console.error("SAJE notification dispatch failed", error);
+  }
 
   return NextResponse.json({ success: true, status: to });
 }
