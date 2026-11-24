@@ -30,10 +30,10 @@ async function sendPushNotifications(notificationId: string, orderId: string, us
 
   for (const device of devices) {
     const key = { notificationId_channel_target: { notificationId, channel: "PUSH" as const, target: device.id } };
-    const existing = await prisma.notificationDelivery.findUnique({ where: key.notificationId_channel_target, select: { id: true, status: true } });
+    const existing = await prisma.notificationDelivery.findUnique({ where: key, select: { id: true, status: true } });
     if (existing?.status === "SENT" || existing?.status === "DELIVERED") continue;
     const delivery = await prisma.notificationDelivery.upsert({
-      where: key.notificationId_channel_target,
+      where: key,
       create: { notificationId, channel: "PUSH", target: device.id, status: "PROCESSING", attempts: 1 },
       update: { status: "PROCESSING", attempts: { increment: 1 }, lastError: null },
     });
@@ -68,10 +68,10 @@ async function sendPushNotifications(notificationId: string, orderId: string, us
 
   for (const subscription of browserSubscriptions) {
     const key = { notificationId_channel_target: { notificationId, channel: "PUSH" as const, target: subscription.id } };
-    const existing = await prisma.notificationDelivery.findUnique({ where: key.notificationId_channel_target, select: { id: true, status: true } });
+    const existing = await prisma.notificationDelivery.findUnique({ where: key, select: { id: true, status: true } });
     if (existing?.status === "SENT" || existing?.status === "DELIVERED") continue;
     const delivery = await prisma.notificationDelivery.upsert({
-      where: key.notificationId_channel_target,
+      where: key,
       create: { notificationId, channel: "PUSH", target: subscription.id, status: "PROCESSING", attempts: 1 },
       update: { status: "PROCESSING", attempts: { increment: 1 }, lastError: null },
     });
