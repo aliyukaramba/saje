@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { notifyOrderStatusChange } from "../../../../lib/notifications/service";
 import { prisma, findPaymentByReference, applyGatewayResult, recordWebhookEvent } from "@restaurant/database";
 import {
   TopifyClient, verifyTopifySignature, parseTopifyWebhook, confirmGatewayPayment,
@@ -41,6 +42,10 @@ export async function POST(req: Request) {
       { reference: verified.reference, status: verified.status, amountKobo: verified.amount, currency: event.currency },
     );
     await applyGatewayResult(prisma, payment.id, status, "gateway_webhook");
+    if (status === "SUCCESSFUL" && payment.order.status === "PENDING") {
+      try { await notifyOrderStatusChange(payment.order.id, "PENDING", "CONFIRMED"); }
+      catch (notificationError) { console.error("SAJE payment notification dispatch failed", notificationError); }
+    }
   } catch (e) {
     if (e instanceof PaymentMismatchError) {
       console.error("topify mismatch", event.reference, e.message);
