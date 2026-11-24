@@ -1,5 +1,7 @@
 "use client";
 
+import "./notifications.css";
+
 import { useCallback, useEffect, useState } from "react";
 
 type Notice = {
