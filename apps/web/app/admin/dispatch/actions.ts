@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { prisma } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
+import { notifyDeliveryAssigned } from "../../../lib/notifications/service";
 
 function fail(message: string): never {
   redirect(`/admin/dispatch?error=${encodeURIComponent(message)}`);
@@ -38,6 +39,8 @@ export async function assignDriver(formData: FormData) {
     create: { orderId, staffId: driverId, status: "ASSIGNED", assignedAt: now },
     update: { staffId: driverId, status: "ASSIGNED", assignedAt: now, pickedUpAt: null, failureReason: null },
   });
+  try { await notifyDeliveryAssigned(orderId, driverId); }
+  catch (error) { console.error("SAJE delivery assignment notification failed", error); }
   revalidatePath("/admin/dispatch");
   revalidatePath("/admin/driver");
   redirect("/admin/dispatch");
