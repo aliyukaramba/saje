@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@restaurant/database";
-import { notifyDeliveryAssigned, notifyOrderStatusChange, notifyReservationCreated } from "../../../../lib/notifications/service";
+import { notifyDeliveryAssigned, notifyOrderStatusChange, notifyPaymentFailed, notifyReservationCreated } from "../../../../lib/notifications/service";
 
 export const dynamic = "force-dynamic";
 
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     if (!claimed.count) continue;
 
     try {
-      const payload = event.payload as { fromStatus?: unknown; toStatus?: unknown; driverId?: unknown };
+      const payload = event.payload as { fromStatus?: unknown; toStatus?: unknown; driverId?: unknown; paymentId?: unknown };
       if (event.eventType === "RESERVATION_CREATED" && event.aggregateType === "Reservation") {
         await notifyReservationCreated(event.aggregateId);
       } else if (event.aggregateType === "Order" && event.eventType === "ORDER_STATUS_CHANGED") {
@@ -38,6 +38,11 @@ export async function POST(request: Request) {
           throw new Error("Outbox order-status payload is invalid.");
         }
         await notifyOrderStatusChange(event.aggregateId, payload.fromStatus, payload.toStatus);
+      } else if (event.aggregateType === "Order" && event.eventType === "PAYMENT_FAILED") {
+        if (typeof payload.paymentId !== "string" || !payload.paymentId) {
+          throw new Error("Outbox payment-failure payload is invalid.");
+        }
+        await notifyPaymentFailed(payload.paymentId);
       } else if (event.aggregateType === "Order" && event.eventType === "DELIVERY_ASSIGNED") {
         if (typeof payload.driverId !== "string" || !payload.driverId) {
           throw new Error("Outbox delivery-assignment payload is invalid.");
