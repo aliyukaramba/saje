@@ -7,6 +7,7 @@ import { changeQuantity, clearCart, removeLine, subtotalKobo, useCart } from "..
 import { SwipeRow } from "../../components/SwipeRow";
 import { TopifyCheckoutModal } from "../../components/TopifyCheckoutModal";
 import { rememberOrder } from "../../src/orders";
+import { registerGuestOrderPush } from "../../src/notifications";
 import { formatKobo, nairaToKobo } from "../../src/money";
 import { colors } from "../../src/theme";
 
@@ -113,7 +114,10 @@ export default function CartScreen() {
     }
   }
 
-  function handlePaymentPaid(paidOrderNumber: string) {
+  async function handlePaymentPaid(paidOrderNumber: string) {
+    if (activeCheckout?.reference) {
+      await registerGuestOrderPush(activeCheckout.reference).catch(() => undefined);
+    }
     clearCart();
     setMessage(`Payment confirmed for order ${paidOrderNumber}. Track it under Orders.`);
   }
