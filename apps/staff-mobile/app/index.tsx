@@ -11,7 +11,7 @@ import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getOrders, getProfile, signIn, signOut, updateOrderStatus, type StaffOrder, type StaffUser } from "../src/api";
 import { colors } from "../src/theme";
-import { registerStaffPush } from "../src/notifications";
+import { deactivateStaffPush, registerStaffPush } from "../src/notifications";
 
 const TOKEN_KEY = "saje_staff_session";
 const ROLE_LABELS: Record<string, string> = {
@@ -104,7 +104,10 @@ export default function StaffHome() {
   }, [token, load]);
 
   const onLogout = async () => {
-    if (token) await signOut(token).catch(() => undefined);
+    if (token) {
+      await deactivateStaffPush(token).catch(() => undefined);
+      await signOut(token).catch(() => undefined);
+    }
     await AsyncStorage.removeItem(TOKEN_KEY);
     setToken(null); setUser(null); setOrders([]);
   };
