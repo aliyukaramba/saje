@@ -13,11 +13,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Retry pending notification events
-        if: ${{ secrets.NOTIFICATION_CRON_SECRET != '' }}
         env:
           SAJE_API_URL: ${{ vars.SAJE_API_URL || 'https://saje-web.akarambaaleeyu.workers.dev' }}
           NOTIFICATION_CRON_SECRET: ${{ secrets.NOTIFICATION_CRON_SECRET }}
         run: |
+          if [ -z "$NOTIFICATION_CRON_SECRET" ]; then
+            echo "NOTIFICATION_CRON_SECRET is not configured; skipping dispatcher."
+            exit 0
+          fi
           curl --fail --silent --show-error \
             --request POST \
             --header "Authorization: Bearer ${NOTIFICATION_CRON_SECRET}" \
