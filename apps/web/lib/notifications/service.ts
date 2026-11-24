@@ -209,3 +209,78 @@ export async function notifyOrderStatusChange(orderId: string, fromStatus: strin
     data: { status: "PROCESSED", processedAt: new Date(), attempts: { increment: 1 }, lastError: null },
   });
 }
+
+
+/** Notify the customer, assigned driver and managers when a delivery is assigned. */
+export async function notifyDeliveryAssigned(orderId: string, driverId: string) {
+  const order = await prisma.order.findUnique({
+    where: { id: orderId },
+    select: { id: true, orderNumber: true, customerId: true },
+  });
+  if (!order) return;
+
+  const managers = await prisma.user.findMany({
+    where: {
+      kind: "STAFF", status: "ACTIVE", deletedAt: null,
+      roles: { some: { role: { key: { in: ["restaurant_manager", "super_admin"] } } } },
+    },
+    select: { id: true },
+  });
+  const recipients = new Map<string, { title: string; body: string }>();
+  recipients.set(driverId, {
+    title: "New delivery assigned",
+    body: `Order #${order.orderNumber} has been assigned to you.`,
+  });
+  for (const manager of managers) recipients.set(manager.id, {
+    title: "Delivery assigned",
+    body: `Order #${order.orderNumber} has been assigned to a driver.`,
+  });
+  if (order.customerId) recipients.set(order.customerId, {
+    title: "Your delivery is assigned",
+    body: `A driver has been assigned to order #${order.orderNumber}.`,
+  });
+
+  const eventKey = `order:${order.id}:delivery:assigned:${driverId}`;
+  const event = await prisma.notificationOutboxEvent.upsert({
+    where: { idempotencyKey: eventKey },
+    create: {
+      eventType: "DELIVERY_ASSIGNED", aggregateType: "Order", aggregateId: order.id,
+      idempotencyKey: eventKey, payload: { orderId: order.id, driverId },
+    },
+    update: {},
+  });
+
+  for (const [userId, copy] of recipients) {
+    const preference = await prisma.notificationPreference.findUnique({
+      where: { userId_category: { userId, category: "ORDERS" } },
+      select: { inApp: true, push: true },
+    });
+    const inAppEnabled = preference?.inApp !== false;
+    const pushEnabled = preference?.push !== false;
+    if (!inAppEnabled && !pushEnabled) continue;
+
+    const notification = await prisma.notification.upsert({
+      where: { dedupeKey: `${eventKey}:user:${userId}` },
+      create: {
+        userId, channel: inAppEnabled ? "IN_APP" : "PUSH",
+        type: "DELIVERY_ASSIGNED", category: "ORDERS", title: copy.title, body: copy.body,
+        priority: "HIGH", dedupeKey: `${eventKey}:user:${userId}`,
+        relatedEntityType: "Order", relatedEntityId: order.id,
+        payload: { orderId: order.id, orderNumber: order.orderNumber, route: userId === driverId ? "/admin/driver" : "/admin/notifications" },
+      },
+      update: {},
+      select: { id: true },
+    });
+    if (pushEnabled) {
+      await sendPushNotifications(notification.id, order.id, userId, copy.title, copy.body, {
+        notificationId: notification.id, type: "DELIVERY_ASSIGNED", orderId: order.id,
+        route: userId === driverId ? "/admin/driver" : "/admin/notifications",
+      });
+    }
+  }
+
+  await prisma.notificationOutboxEvent.update({
+    where: { id: event.id },
+    data: { status: "PROCESSED", processedAt: new Date(), attempts: { increment: 1 }, lastError: null },
+  });
+}
