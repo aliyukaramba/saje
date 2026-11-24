@@ -50,3 +50,21 @@ export async function registerGuestOrderPush(reference: string) {
   });
   if (!response.ok) throw new Error("Could not register this device for order updates.");
 }
+
+export async function registerTableOrderPush(tableToken: string, orderNumber: string) {
+  const token = await expoToken();
+  if (!token) return;
+  const response = await fetch(`${API_URL}/api/notifications/table-guest-devices/register`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({
+      tableToken,
+      orderNumber,
+      token,
+      installationId: await installationId(),
+      platform: Platform.OS.toUpperCase(),
+      appVersion: Constants.expoConfig?.version ?? "unknown",
+    }),
+  });
+  if (!response.ok) throw new Error("Could not register this device for table order updates.");
+}
