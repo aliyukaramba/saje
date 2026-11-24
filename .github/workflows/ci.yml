@@ -25,6 +25,14 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install staff mobile dependencies
+        run: npm install --no-audit --no-fund --package-lock=false
+        working-directory: apps/staff-mobile
+
+      - name: Type check staff mobile
+        run: npm run typecheck
+        working-directory: apps/staff-mobile
+
       - name: Generate Prisma client
         run: npm run generate -w @restaurant/database
 
