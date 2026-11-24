@@ -1,5 +1,3 @@
-"use client";
-
 import Link from "next/link";
 import { canAny, type Permission, type RoleKey } from "@restaurant/shared";
 import { logoutAction } from "../../app/admin/login/actions";
