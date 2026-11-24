@@ -8,7 +8,7 @@ import {
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { getOrders, getProfile, signIn, signOut, type StaffOrder, type StaffUser } from "../src/api";
+import { getOrders, getProfile, signIn, signOut, updateOrderStatus, type StaffOrder, type StaffUser } from "../src/api";
 import { colors } from "../src/theme";
 
 const TOKEN_KEY = "saje_staff_session";
@@ -238,4 +238,142 @@ const styles = StyleSheet.create({
   orderTotal: { color: colors.text, fontWeight: "800", fontSize: 12 },
   orderStatus: { color: colors.accent, fontSize: 9, fontWeight: "800", marginTop: 4 },
   empty: { marginTop: 10, backgroundColor: colors.surface, borderRadius: 14, padding: 20, borderWidth: 1, borderColor: colors.line },
+});
+
+
+function KitchenBoard({ token, user, orders, onRefresh, onLogout }: {
+  token: string;
+  user: StaffUser;
+  orders: StaffOrder[];
+  onRefresh: () => Promise<void>;
+  onLogout: () => Promise<void>;
+}) {
+  const [busyId, setBusyId] = useState<string | null>(null);
+  const [message, setMessage] = useState("");
+  const [refreshing, setRefreshing] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => { void onRefresh(); }, 8000);
+    return () => clearInterval(timer);
+  }, [onRefresh]);
+
+  const update = async (order: StaffOrder, status: "ACCEPTED" | "PREPARING" | "READY") => {
+    setBusyId(order.id);
+    setMessage("");
+    try {
+      await updateOrderStatus(token, order.id, status);
+      await onRefresh();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "Could not update order.");
+    } finally {
+      setBusyId(null);
+    }
+  };
+
+  const refresh = async () => {
+    setRefreshing(true);
+    try { await onRefresh(); } finally { setRefreshing(false); }
+  };
+
+  const incoming = orders.filter(order => order.status === "CONFIRMED");
+  const preparing = orders.filter(order => ["ACCEPTED", "PREPARING"].includes(order.status));
+  const ready = orders.filter(order => order.status === "READY");
+
+  const elapsed = (date: string) => {
+    const minutes = Math.max(0, Math.floor((Date.now() - new Date(date).getTime()) / 60000));
+    return minutes < 1 ? "Just now" : minutes < 60 ? `${minutes} min waiting` : `${Math.floor(minutes / 60)}h ${minutes % 60}m waiting`;
+  };
+
+  const lane = (title: string, subtitle: string, list: StaffOrder[], kind: "incoming" | "preparing" | "ready") => (
+    <View style={kitchenStyles.lane}>
+      <View style={kitchenStyles.laneHead}>
+        <View><Text style={kitchenStyles.laneTitle}>{title}</Text><Text style={kitchenStyles.laneSub}>{subtitle}</Text></View>
+        <Text style={kitchenStyles.laneCount}>{list.length}</Text>
+      </View>
+      {list.length === 0 ? <View style={kitchenStyles.empty}><Text style={kitchenStyles.emptyText}>No orders here</Text></View> : list.map(order => {
+        const next = kind === "incoming" ? "ACCEPTED" : order.status === "ACCEPTED" ? "PREPARING" : kind === "preparing" ? "READY" : null;
+        const label = kind === "incoming" ? "Accept order" : order.status === "ACCEPTED" ? "Start preparing" : "Mark ready";
+        return (
+          <View key={order.id} style={kitchenStyles.ticket}>
+            <View style={kitchenStyles.ticketTop}>
+              <View style={{ flex: 1 }}>
+                <Text style={kitchenStyles.ticketNo}>{order.orderNumber}</Text>
+                <Text style={kitchenStyles.ticketMeta}>{order.tableNumber ? `Table ${order.tableNumber}` : order.type.replaceAll("_", " ")} · {elapsed(order.placedAt)}</Text>
+              </View>
+              <Text style={kitchenStyles.status}>{order.status.replaceAll("_", " ")}</Text>
+            </View>
+            <View style={kitchenStyles.items}>
+              {order.items.map((item, index) => (
+                <View key={index} style={kitchenStyles.itemRow}>
+                  <Text style={kitchenStyles.qty}>{item.quantity}×</Text>
+                  <Text style={kitchenStyles.itemName}>{item.name}</Text>
+                </View>
+              ))}
+            </View>
+            {!!order.guestName && <Text style={kitchenStyles.note}>Guest: {order.guestName}</Text>}
+            {next && <Pressable disabled={busyId === order.id} onPress={() => void update(order, next)} style={[kitchenStyles.action, busyId === order.id && { opacity: 0.6 }]}>
+              {busyId === order.id ? <ActivityIndicator color="#fff" /> : <Text style={kitchenStyles.actionText}>{label}</Text>}
+            </Pressable>}
+            {kind === "ready" && <Text style={kitchenStyles.readyText}>Waiting for service staff</Text>}
+          </View>
+        );
+      })}
+    </View>
+  );
+
+  return (
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={kitchenStyles.content} refreshControl={<RefreshControl refreshing={refreshing} onRefresh={refresh} tintColor={colors.accent} />}>
+        <View style={kitchenStyles.header}>
+          <View>
+            <Text style={styles.eyebrow}>SAJE · KITCHEN</Text>
+            <Text style={kitchenStyles.heading}>Kitchen display</Text>
+            <Text style={styles.muted}>Hi {user.fullName.split(" ")[0]}, here is your live ticket queue.</Text>
+          </View>
+          <Pressable onPress={onLogout} style={styles.logout}><Ionicons name="log-out-outline" size={20} color={colors.text} /></Pressable>
+        </View>
+        <View style={kitchenStyles.summary}>
+          <View style={kitchenStyles.summaryCell}><Text style={kitchenStyles.summaryNumber}>{incoming.length}</Text><Text style={kitchenStyles.summaryLabel}>NEW</Text></View>
+          <View style={kitchenStyles.summaryCell}><Text style={kitchenStyles.summaryNumber}>{preparing.length}</Text><Text style={kitchenStyles.summaryLabel}>IN PROGRESS</Text></View>
+          <View style={kitchenStyles.summaryCell}><Text style={kitchenStyles.summaryNumber}>{ready.length}</Text><Text style={kitchenStyles.summaryLabel}>READY</Text></View>
+        </View>
+        {!!message && <Text style={kitchenStyles.error}>{message}</Text>}
+        {lane("Incoming", "New paid and confirmed tickets", incoming, "incoming")}
+        {lane("Preparing", "Orders being worked on", preparing, "preparing")}
+        {lane("Ready to serve", "Completed kitchen tickets", ready, "ready")}
+        <Text style={styles.footer}>Auto-refreshes every 8 seconds · Pull down to refresh</Text>
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+const kitchenStyles = StyleSheet.create({
+  content: { padding: 18, paddingBottom: 42, gap: 18 },
+  header: { flexDirection: "row", alignItems: "center", justifyContent: "space-between" },
+  heading: { color: colors.text, fontSize: 25, fontWeight: "900", marginTop: 5 },
+  summary: { flexDirection: "row", backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, borderRadius: 17, padding: 14, gap: 8 },
+  summaryCell: { flex: 1, alignItems: "center" },
+  summaryNumber: { fontSize: 25, fontWeight: "900", color: colors.text },
+  summaryLabel: { fontSize: 9, fontWeight: "800", color: colors.muted, letterSpacing: 1, marginTop: 3 },
+  lane: { gap: 10 },
+  laneHead: { flexDirection: "row", justifyContent: "space-between", alignItems: "center" },
+  laneTitle: { color: colors.text, fontSize: 18, fontWeight: "900" },
+  laneSub: { color: colors.muted, fontSize: 11, marginTop: 3 },
+  laneCount: { color: colors.accent, backgroundColor: colors.accentSoft, overflow: "hidden", borderRadius: 20, paddingHorizontal: 11, paddingVertical: 5, fontWeight: "900" },
+  empty: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, borderRadius: 14, padding: 18 },
+  emptyText: { color: colors.muted, fontSize: 12, textAlign: "center" },
+  ticket: { backgroundColor: colors.surface, borderWidth: 1, borderColor: colors.line, borderRadius: 16, padding: 14, gap: 12 },
+  ticketTop: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
+  ticketNo: { color: colors.text, fontSize: 16, fontWeight: "900" },
+  ticketMeta: { color: colors.muted, fontSize: 11, marginTop: 4 },
+  status: { color: colors.accent, fontSize: 9, fontWeight: "900", backgroundColor: colors.accentSoft, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 8, overflow: "hidden" },
+  items: { borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.line, paddingVertical: 9, gap: 8 },
+  itemRow: { flexDirection: "row", gap: 10, alignItems: "center" },
+  qty: { color: colors.accent, fontWeight: "900", width: 28 },
+  itemName: { color: colors.text, fontSize: 14, fontWeight: "700", flex: 1 },
+  note: { color: colors.muted, fontSize: 11 },
+  action: { backgroundColor: colors.accent, borderRadius: 11, paddingVertical: 13, alignItems: "center" },
+  actionText: { color: "#fff", fontSize: 13, fontWeight: "900" },
+  readyText: { color: colors.green, fontSize: 12, fontWeight: "800", textAlign: "center" },
+  error: { color: colors.red, fontSize: 12, fontWeight: "700" },
 });
