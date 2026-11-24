@@ -146,15 +146,17 @@ export async function notifyOrderStatusChange(orderId: string, fromStatus: strin
   for (const [userId] of recipients) {
     const preference = await prisma.notificationPreference.findUnique({
       where: { userId_category: { userId, category: "ORDERS" } },
-      select: { inApp: true },
+      select: { inApp: true, push: true },
     });
-    if (preference?.inApp === false) continue;
+    const inAppEnabled = preference?.inApp !== false;
+    const pushEnabled = preference?.push !== false;
+    if (!inAppEnabled && !pushEnabled) continue;
     const dedupeKey = `${eventKey}:user:${userId}`;
     const notification = await prisma.notification.upsert({
       where: { dedupeKey },
       create: {
         userId,
-        channel: "IN_APP",
+        channel: inAppEnabled ? "IN_APP" : "PUSH",
         type: "ORDER_STATUS",
         category: "ORDERS",
         title: copy.title,
@@ -168,9 +170,11 @@ export async function notifyOrderStatusChange(orderId: string, fromStatus: strin
       update: {},
       select: { id: true },
     });
-    await sendPushNotifications(notification.id, order.id, userId, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
-      notificationId: notification.id, type: "ORDER_STATUS", orderId: order.id, route: "/orders",
-    });
+    if (pushEnabled) {
+      await sendPushNotifications(notification.id, order.id, userId, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
+        notificationId: notification.id, type: "ORDER_STATUS", orderId: order.id, route: "/orders",
+      });
+    }
   }
 
   if (!order.customerId && customerStatuses.includes(status)) {
