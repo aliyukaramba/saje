@@ -42,10 +42,6 @@ export default function MenuScreen() {
       <View style={styles.hero}>
         <Text style={styles.kicker}>Today's menu</Text>
         <Text style={styles.heading}>What are you <Text style={styles.headingLight}>craving?</Text></Text>
-        <Pressable style={styles.scanButton} onPress={() => router.push("/scan")} accessibilityRole="button">
-          <Ionicons name="qr-code-outline" size={18} color={colors.surface} />
-          <Text style={styles.scanButtonText}>Scan table QR</Text>
-        </Pressable>
       </View>
 
       <View style={styles.searchBox}><Ionicons name="search-outline" size={19} color={colors.muted} /><TextInput value={search} onChangeText={setSearch} placeholder="Search dishes…" placeholderTextColor={colors.muted} style={styles.searchInput} returnKeyType="search" />{search.length > 0 ? <Pressable onPress={() => setSearch("")} accessibilityRole="button" accessibilityLabel="Clear search"><Ionicons name="close-circle" size={18} color={colors.muted} /></Pressable> : null}</View>
@@ -143,8 +139,6 @@ const styles = StyleSheet.create({
   screen: { flex: 1, backgroundColor: colors.canvas },
   content: { paddingTop: 12, paddingBottom: 150, gap: 18 },
   hero: { paddingHorizontal: 20, gap: 4 },
-  scanButton: { alignSelf: "flex-start", marginTop: 10, flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: colors.ink, paddingHorizontal: 16, paddingVertical: 11, borderRadius: 999 },
-  scanButtonText: { color: colors.surface, fontSize: 12, fontWeight: "800" },
   kicker: { color: colors.brand, fontSize: 10, fontWeight: "800", letterSpacing: 1.2 },
   heading: { fontSize: 30, lineHeight: 36, fontWeight: "800", color: colors.ink, letterSpacing: -0.6 },
   headingLight: { fontWeight: "300" },
