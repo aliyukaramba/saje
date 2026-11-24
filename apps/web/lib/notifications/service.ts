@@ -27,6 +27,7 @@ async function sendPushNotifications(notificationId: string, orderId: string, us
     ...accountDevices.map(device => ({ ...device, kind: "ACCOUNT" as const })),
     ...guestDevices.map(device => ({ ...device, kind: "GUEST" as const })),
   ];
+  let retryableFailure = false;
 
   for (const device of devices) {
     const key = { notificationId_channel_target: { notificationId, channel: "PUSH" as const, target: device.id } };
@@ -51,6 +52,8 @@ async function sendPushNotifications(notificationId: string, orderId: string, us
         if (ticket?.details?.error === "DeviceNotRegistered") {
           if (device.kind === "ACCOUNT") await prisma.pushDeviceToken.update({ where: { id: device.id }, data: { disabledAt: new Date() } });
           else await prisma.guestPushDeviceToken.update({ where: { id: device.id }, data: { disabledAt: new Date() } });
+        } else {
+          retryableFailure = true;
         }
         continue;
       }
@@ -59,6 +62,7 @@ async function sendPushNotifications(notificationId: string, orderId: string, us
         data: { status: "SENT", providerId: ticket.id ?? null, sentAt: new Date(), lastError: null },
       });
     } catch (error) {
+      retryableFailure = true;
       await prisma.notificationDelivery.update({
         where: { id: delivery.id },
         data: { status: "FAILED", lastError: error instanceof Error ? error.message.slice(0, 500) : "Push delivery failed." },
@@ -86,6 +90,8 @@ async function sendPushNotifications(notificationId: string, orderId: string, us
         await prisma.notificationDelivery.update({ where: { id: delivery.id }, data: { status: "FAILED", lastError: reason } });
         if (result.status === 404 || result.status === 410) {
           await prisma.webPushSubscription.update({ where: { id: subscription.id }, data: { disabledAt: new Date() } });
+        } else {
+          retryableFailure = true;
         }
         continue;
       }
@@ -94,12 +100,15 @@ async function sendPushNotifications(notificationId: string, orderId: string, us
         data: { status: "SENT", providerId: result.providerId, sentAt: new Date(), lastError: null },
       });
     } catch (error) {
+      retryableFailure = true;
       await prisma.notificationDelivery.update({
         where: { id: delivery.id },
         data: { status: "FAILED", lastError: error instanceof Error ? error.message.slice(0, 500) : "Browser push delivery failed." },
       });
     }
   }
+
+  if (retryableFailure) throw new Error("One or more push notifications failed and will be retried from the outbox.");
 }
 
 export async function notifyOrderStatusChange(orderId: string, fromStatus: string, toStatus: string) {
