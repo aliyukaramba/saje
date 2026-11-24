@@ -5,6 +5,7 @@ import { Platform } from "react-native";
 import { API_URL } from "./api";
 
 const INSTALLATION_KEY = "saje_staff_installation_id";
+const DEVICE_KEY = "saje_staff_push_device_id";
 
 async function installationId() {
   const existing = await AsyncStorage.getItem(INSTALLATION_KEY);
@@ -43,5 +44,19 @@ export async function registerStaffPush(sessionToken: string) {
       appVersion: Constants.expoConfig?.version ?? "unknown",
     }),
   });
-  if (!response.ok) throw new Error("Could not register this device for staff notifications.");
+  const result = await response.json().catch(() => ({})) as { deviceId?: string; error?: string };
+  if (!response.ok || !result.deviceId) throw new Error(result.error ?? "Could not register this device for staff notifications.");
+  await AsyncStorage.setItem(DEVICE_KEY, result.deviceId);
+}
+
+
+export async function deactivateStaffPush(sessionToken: string) {
+  const deviceId = await AsyncStorage.getItem(DEVICE_KEY);
+  if (!deviceId) return;
+  const response = await fetch(`${API_URL}/api/notifications/devices/${encodeURIComponent(deviceId)}`, {
+    method: "DELETE",
+    headers: { Authorization: `Bearer ${sessionToken}` },
+  });
+  if (!response.ok) throw new Error("Could not deactivate this device's notifications.");
+  await AsyncStorage.removeItem(DEVICE_KEY);
 }
