@@ -34,7 +34,6 @@ export function AdminNav({ roleKeys }: { roleKeys: RoleKey[] }) {
     <aside className="admin-side" aria-label="Admin navigation">
       <div className="admin-brand-row">
         <Link className="admin-brand" href="/admin" aria-label="SAJE admin home">
-          <span className="admin-brand-mark">S</span>
           <span>SAJE<span className="admin-brand-dot">.</span></span>
         </Link>
         <span className="admin-workspace-label">RESTAURANT WORKSPACE</span>
