@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet,
+  ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, StyleSheet,
   Text, TextInput, View,
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -116,7 +116,7 @@ export default function StaffHome() {
     return (
       <SafeAreaView style={styles.safe}>
         <View style={styles.loginWrap}>
-          <View style={styles.brandMark}><Ionicons name="restaurant" size={24} color="#fff" /></View>
+          <Image source={require("../assets/icon.png")} style={styles.brandLogo} />
           <Text style={styles.brand}>SAJE <Text style={styles.brandAccent}>STAFF</Text></Text>
           <Text style={styles.loginTitle}>Welcome back</Text>
           <Text style={styles.muted}>Sign in with your restaurant staff account.</Text>
@@ -194,7 +194,7 @@ export default function StaffHome() {
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: colors.background },
   loginWrap: { flex: 1, justifyContent: "center", padding: 28 },
-  brandMark: { width: 52, height: 52, borderRadius: 17, backgroundColor: colors.accent, alignItems: "center", justifyContent: "center", marginBottom: 18 },
+  brandLogo: { width: 56, height: 56, borderRadius: 16, marginBottom: 18 },
   brand: { fontSize: 18, letterSpacing: 2, fontWeight: "900", color: colors.text },
   brandAccent: { color: colors.accent },
   loginTitle: { fontSize: 30, fontWeight: "800", color: colors.text, marginTop: 42 },
