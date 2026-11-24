@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { prisma, deductForOrder } from "@restaurant/database";
 import { canTransition, ORDER_STATUSES, type OrderStatus } from "@restaurant/shared";
-import { requestStaff } from "../../../../../lib/staff-api";
+import { requestStaff } from "../../../../../../lib/staff-api";
 
 export const dynamic = "force-dynamic";
 
