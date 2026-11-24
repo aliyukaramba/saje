@@ -370,7 +370,7 @@ const kitchenStyles = StyleSheet.create({
   items: { borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.line, paddingVertical: 9, gap: 8 },
   itemRow: { flexDirection: "row", gap: 10, alignItems: "center" },
   qty: { color: colors.accent, fontWeight: "900", width: 28 },
-  itemName: { color: colors.text, fontSize: 14, fontWeight: "700", flex: 1 },
+  itemName: { color: colors.text, fontSize: 14, fontWeight: "700" },\n  itemExtra: { color: colors.muted, fontSize: 11, marginTop: 3 },\n  itemNote: { color: colors.accent, fontSize: 11, fontWeight: "700", marginTop: 3 },
   note: { color: colors.muted, fontSize: 11 },
   action: { backgroundColor: colors.accent, borderRadius: 11, paddingVertical: 13, alignItems: "center" },
   actionText: { color: "#fff", fontSize: 13, fontWeight: "900" },
