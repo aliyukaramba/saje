@@ -187,24 +187,22 @@ export async function notifyOrderStatusChange(orderId: string, fromStatus: strin
   }
 
   if (!order.customerId && customerStatuses.includes(status)) {
-    const guestReference = order.payments[0]?.reference;
-    if (guestReference) {
-      const dedupeKey = `${eventKey}:guest`;
-      const notification = await prisma.notification.upsert({
-        where: { dedupeKey },
-        create: {
-          userId: null, guestReference, channel: "IN_APP", type: "ORDER_STATUS", category: "ORDERS",
-          title: copy.title, body: `${copy.body} Order #${order.orderNumber}.`, priority: copy.priority,
-          dedupeKey, relatedEntityType: "Order", relatedEntityId: order.id,
-          payload: { orderId: order.id, orderNumber: order.orderNumber, status, route: "/orders" },
-        },
-        update: {},
-        select: { id: true },
-      });
-      await sendPushNotifications(notification.id, order.id, null, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
-        notificationId: notification.id, type: "ORDER_STATUS", orderId: order.id, route: "/orders",
-      });
-    }
+    const guestReference = order.payments[0]?.reference ?? null;
+    const dedupeKey = `${eventKey}:guest`;
+    const notification = await prisma.notification.upsert({
+      where: { dedupeKey },
+      create: {
+        userId: null, guestReference, channel: "IN_APP", type: "ORDER_STATUS", category: "ORDERS",
+        title: copy.title, body: `${copy.body} Order #${order.orderNumber}.`, priority: copy.priority,
+        dedupeKey, relatedEntityType: "Order", relatedEntityId: order.id,
+        payload: { orderId: order.id, orderNumber: order.orderNumber, status, route: "/notifications" },
+      },
+      update: {},
+      select: { id: true },
+    });
+    await sendPushNotifications(notification.id, order.id, null, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
+      notificationId: notification.id, type: "ORDER_STATUS", orderId: order.id, route: "/notifications",
+    });
   }
   await prisma.notificationOutboxEvent.update({
     where: { id: outbox.id },
