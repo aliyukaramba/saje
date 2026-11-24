@@ -29,7 +29,17 @@ export async function POST(request: Request) {
 
     const staff = await prisma.user.findUnique({
       where: { id: result.user.id },
-      include: { roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } },
+      include: {
+        roles: {
+          include: {
+            role: {
+              include: {
+                permissions: { include: { permission: true } },
+              },
+            },
+          },
+        },
+      },
     });
     if (!staff || staff.status !== "ACTIVE" || staff.deletedAt || staff.roles.length === 0) {
       await revokeNewSession();
