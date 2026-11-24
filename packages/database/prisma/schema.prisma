@@ -503,6 +503,7 @@ model Order {
   payments    Payment[]
   delivery    DeliveryAssignment?
   allocations PaymentAllocation[]
+  guestPushDevices GuestPushDeviceToken[]
 
   @@index([status, placedAt])
   @@index([channel, placedAt])
@@ -767,10 +768,12 @@ model Notification {
   createdAt         DateTime             @default(now())
   user              User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
   deliveries        NotificationDelivery[]
+  guestReference    String?
 
   @@index([userId, readAt, createdAt])
   @@index([category, createdAt])
   @@index([relatedEntityType, relatedEntityId])
+  @@index([guestReference, createdAt])
 }
 
 model PushDeviceToken {
@@ -790,6 +793,23 @@ model PushDeviceToken {
 
   @@unique([userId, installationId, app])
   @@index([userId, disabledAt])
+}
+
+model GuestPushDeviceToken {
+  id             String       @id @default(cuid())
+  orderId        String
+  installationId String
+  token          String       @unique
+  platform       PushPlatform
+  appVersion     String?
+  lastSeenAt     DateTime     @default(now())
+  disabledAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  order          Order        @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@unique([orderId, installationId])
+  @@index([orderId, disabledAt])
 }
 
 model WebPushSubscription {
