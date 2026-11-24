@@ -74,3 +74,40 @@ export async function updateOrderStatus(token: string, orderId: string, status: 
   if (!response.ok) throw new Error(body.error ?? "Unable to update order.");
   return body as { success: true; status: string };
 }
+
+export interface StaffNotification {
+  id: string;
+  type: string;
+  category: string;
+  title: string;
+  body: string;
+  priority: "LOW" | "NORMAL" | "HIGH" | "URGENT";
+  readAt: string | null;
+  createdAt: string;
+}
+
+export async function getNotifications(token: string) {
+  return request<{ notifications: StaffNotification[]; nextCursor: string | null }>("/api/notifications?limit=50", token);
+}
+
+export async function getUnreadNotificationCount(token: string) {
+  return request<{ count: number }>("/api/notifications/unread-count", token);
+}
+
+export async function markNotificationRead(token: string, id: string) {
+  const response = await fetch(`${API_URL}/api/notifications/${encodeURIComponent(id)}/read`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "Unable to update notification.");
+}
+
+export async function markAllNotificationsRead(token: string) {
+  const response = await fetch(`${API_URL}/api/notifications/read-all`, {
+    method: "POST",
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "Unable to update notifications.");
+}
