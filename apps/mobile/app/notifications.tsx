@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from "react-native";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
 import { router } from "expo-router";
 import { readOrders, type SavedOrder } from "../src/orders";
@@ -14,9 +15,12 @@ type GuestNotice = {
   priority: "LOW" | "NORMAL" | "HIGH" | "URGENT";
   readAt: string | null;
   createdAt: string;
-  reference: string;
+  reference?: string;
+  tableToken?: string;
   orderNumber: string;
 };
+
+const TABLE_ORDER_PREFIX = "saje-native-table-orders:";
 
 export default function NotificationsScreen() {
   const [items, setItems] = useState<GuestNotice[]>([]);
@@ -26,13 +30,35 @@ export default function NotificationsScreen() {
 
   const load = useCallback(async () => {
     const orders: SavedOrder[] = await readOrders();
-    const results = await Promise.all(orders.map(async order => {
+    const normalResults = await Promise.all(orders.map(async order => {
       const response = await fetch(`${API_URL}/api/notifications/guest?ref=${encodeURIComponent(order.reference)}`);
       if (!response.ok) return [];
-      const data = await response.json() as { notifications: Omit<GuestNotice, "reference" | "orderNumber">[] };
+      const data = await response.json() as { notifications: Omit<GuestNotice, "reference" | "orderNumber" | "tableToken">[] };
       return data.notifications.map(item => ({ ...item, reference: order.reference, orderNumber: order.orderNumber }));
     }));
-    const merged = results.flat().sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
+    const keys = (await AsyncStorage.getAllKeys()).filter(key => key.startsWith(TABLE_ORDER_PREFIX));
+    const tableGroups = await Promise.all(keys.map(async key => {
+      const tableToken = key.slice(TABLE_ORDER_PREFIX.length);
+      const raw = await AsyncStorage.getItem(key);
+      let orderNumbers: string[] = [];
+      try {
+        const parsed: unknown = raw ? JSON.parse(raw) : [];
+        if (Array.isArray(parsed)) orderNumbers = parsed.filter((value): value is string => typeof value === "string").slice(-20);
+      } catch { /* ignore invalid local order history */ }
+      if (!tableToken || !orderNumbers.length) return [];
+      const response = await fetch(`${API_URL}/api/notifications/table-guest`, {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: tableToken, orders: orderNumbers }),
+      });
+      if (!response.ok) return [];
+      const data = await response.json() as { notifications: Omit<GuestNotice, "reference" | "tableToken">[] };
+      return data.notifications.map(item => ({ ...item, tableToken }));
+    }));
+
+    const merged = [...normalResults.flat(), ...tableGroups.flat()]
+      .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     setItems(merged);
     setError("");
   }, []);
@@ -51,7 +77,16 @@ export default function NotificationsScreen() {
   };
 
   const markRead = async (item: GuestNotice) => {
-    const response = await fetch(`${API_URL}/api/notifications/guest/${encodeURIComponent(item.id)}/read?ref=${encodeURIComponent(item.reference)}`, { method: "PATCH" });
+    let response: Response;
+    if (item.reference) {
+      response = await fetch(`${API_URL}/api/notifications/guest/${encodeURIComponent(item.id)}/read?ref=${encodeURIComponent(item.reference)}`, { method: "PATCH" });
+    } else if (item.tableToken) {
+      response = await fetch(`${API_URL}/api/notifications/table-guest/${encodeURIComponent(item.id)}/read`, {
+        method: "PATCH",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token: item.tableToken, orderNumber: item.orderNumber }),
+      });
+    } else return;
     if (response.ok) setItems(current => current.map(n => n.id === item.id ? { ...n, readAt: new Date().toISOString() } : n));
   };
 
