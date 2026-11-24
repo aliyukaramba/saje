@@ -21,8 +21,8 @@ function concatBytes(...parts: Uint8Array[]) {
 }
 
 async function hmac(keyBytes: Uint8Array, data: Uint8Array) {
-  const key = await crypto.subtle.importKey("raw", keyBytes, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
-  return new Uint8Array(await crypto.subtle.sign("HMAC", key, data));
+  const key = await crypto.subtle.importKey("raw", keyBytes as unknown as BufferSource, { name: "HMAC", hash: "SHA-256" }, false, ["sign"]);
+  return new Uint8Array(await crypto.subtle.sign("HMAC", key, data as unknown as BufferSource));
 }
 
 async function hkdfExpand(prk: Uint8Array, info: Uint8Array, length: number) {
