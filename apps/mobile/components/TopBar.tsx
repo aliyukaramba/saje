@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCart } from "../src/cart";
 import { colors } from "../src/theme";
 
-/** Top bar with frosted-glass round buttons: back or brand on the left, title in the middle, cart on the right. */
+/** Top bar with frosted-glass round buttons: back or brand on the left, title in the middle, scanner and cart on the right. */
 export function TopBar({ title = "", showBack = false }: { title?: string; showBack?: boolean }) {
   const insets = useSafeAreaInsets();
   const cart = useCart();
@@ -24,7 +24,8 @@ export function TopBar({ title = "", showBack = false }: { title?: string; showB
         )}
       </View>
       <Text style={styles.title} numberOfLines={1}>{title}</Text>
-      <View style={[styles.side, { alignItems: "flex-end" }]}>
+      <View style={[styles.actions, { alignItems: "center" }]}>
+        <GlassButton icon="qr-code-outline" label="Scan table QR code" onPress={() => router.push("/scan")} />
         <GlassButton icon="bag-handle-outline" label={`Cart, ${count} items`} onPress={() => router.push("/cart")} badge={count} />
       </View>
     </View>
@@ -51,6 +52,7 @@ export function GlassButton({ icon, label, onPress, badge }: { icon: React.Compo
 const styles = StyleSheet.create({
   bar: { flexDirection: "row", alignItems: "center", paddingHorizontal: 16, paddingBottom: 10, backgroundColor: "transparent" },
   side: { width: 56, justifyContent: "center" },
+  actions: { flexDirection: "row", justifyContent: "flex-end", gap: 8 },
   brand: { fontSize: 22, fontWeight: "800", color: colors.ink },
   title: { flex: 1, textAlign: "center", fontSize: 17, fontWeight: "700", color: colors.ink },
   wrap: { width: 44, height: 44 },
