@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { z } from "zod";
 import { prisma, createPosOrder, OrderInputError } from "@restaurant/database";
 import { staffWith } from "../../../lib/auth";
+import { notifyOrderStatusChange } from "../../../lib/notifications/service";
 import { parseMajorToMinor, formatMinor, type Minor } from "@restaurant/shared";
 
 function fail(message: string): never {
@@ -62,6 +63,11 @@ export async function chargePosOrder(formData: FormData) {
     if (e instanceof OrderInputError) fail(e.message);
     console.error("pos sale failed", e);
     fail("The sale could not be saved. Please try again.");
+  }
+  const createdOrder = await prisma.order.findUnique({ where: { orderNumber: result.orderNumber }, select: { id: true, status: true } });
+  if (createdOrder) {
+    try { await notifyOrderStatusChange(createdOrder.id, "PENDING", createdOrder.status); }
+    catch (error) { console.error("SAJE POS notification dispatch failed", error); }
   }
   revalidatePath("/admin/orders");
   revalidatePath("/admin/kitchen");
