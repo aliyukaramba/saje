@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { prisma, deductForOrder } from "@restaurant/database";
 import { ORDER_STATUSES, canTransition, type OrderStatus } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
+import { notifyOrderStatusChange } from "../../../lib/notifications/service";
 
 function fail(message: string): never {
   redirect(`/admin/orders?error=${encodeURIComponent(message)}`);
@@ -39,6 +40,8 @@ export async function advanceOrder(formData: FormData) {
   });
   // Kitchen accepted the order: take the recipe ingredients from stock (idempotent).
   if (to === "ACCEPTED") await deductForOrder(prisma, id);
+  try { await notifyOrderStatusChange(id, order.status, to); }
+  catch (error) { console.error("SAJE order notification dispatch failed", error); }
   revalidatePath("/admin/orders");
   revalidatePath("/admin/kitchen");
   revalidatePath("/admin/inventory");
