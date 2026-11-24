@@ -63,3 +63,14 @@ export async function signOut(token: string) {
     headers: { Authorization: `Bearer ${token}` },
   });
 }
+
+export async function updateOrderStatus(token: string, orderId: string, status: "ACCEPTED" | "PREPARING" | "READY") {
+  const response = await fetch(`${API_URL}/api/staff/orders/${encodeURIComponent(orderId)}/status`, {
+    method: "PATCH",
+    headers: { Authorization: `Bearer ${token}`, "content-type": "application/json" },
+    body: JSON.stringify({ status }),
+  });
+  const body = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(body.error ?? "Unable to update order.");
+  return body as { success: true; status: string };
+}
