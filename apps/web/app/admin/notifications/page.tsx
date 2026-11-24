@@ -3,6 +3,7 @@
 import "./notifications.css";
 
 import { useCallback, useEffect, useState } from "react";
+import { browserPushIsEnabled, disableBrowserPush, enableBrowserPush } from "../../../lib/notifications/browser-push-client";
 
 type Notice = {
   id: string;
@@ -23,6 +24,9 @@ export default function NotificationsPage() {
   const [unread, setUnread] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [pushEnabled, setPushEnabled] = useState(false);
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushMessage, setPushMessage] = useState("");
 
   const load = useCallback(async () => {
     try {
@@ -49,6 +53,32 @@ export default function NotificationsPage() {
     return () => window.clearInterval(timer);
   }, [load]);
 
+  useEffect(() => {
+    let active = true;
+    browserPushIsEnabled().then(enabled => { if (active) setPushEnabled(enabled); }).catch(() => undefined);
+    return () => { active = false; };
+  }, []);
+
+  async function toggleBrowserPush() {
+    setPushBusy(true);
+    setPushMessage("");
+    try {
+      if (pushEnabled) {
+        await disableBrowserPush();
+        setPushEnabled(false);
+        setPushMessage("Browser alerts are turned off on this device.");
+      } else {
+        await enableBrowserPush();
+        setPushEnabled(true);
+        setPushMessage("Browser alerts are enabled on this device.");
+      }
+    } catch (e) {
+      setPushMessage(e instanceof Error ? e.message : "Could not update browser alerts.");
+    } finally {
+      setPushBusy(false);
+    }
+  }
+
   async function markRead(id: string) {
     const response = await fetch(`/api/notifications/${encodeURIComponent(id)}/read`, { method: "PATCH" });
     if (!response.ok) return;
@@ -73,9 +103,13 @@ export default function NotificationsPage() {
         </div>
         <div className="notification-actions">
           <span className="notification-count">{unread} unread</span>
+          <button type="button" onClick={() => void toggleBrowserPush()} disabled={pushBusy} aria-pressed={pushEnabled}>
+            {pushBusy ? "Updating…" : pushEnabled ? "Disable browser alerts" : "Enable browser alerts"}
+          </button>
           <button type="button" onClick={() => void markAllRead()} disabled={unread === 0}>Mark all as read</button>
         </div>
       </div>
+      {pushMessage ? <p className="notification-push-message" role="status">{pushMessage}</p> : null}
       {error ? <p className="notification-error" role="alert">{error}</p> : null}
       {loading ? <div className="notification-empty">Loading notifications…</div> : items.length === 0 ? (
         <div className="notification-empty"><span aria-hidden="true">♧</span><strong>You're all caught up</strong><p>New order and service updates will appear here.</p></div>

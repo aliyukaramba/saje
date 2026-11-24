@@ -1,4 +1,5 @@
 import { prisma } from "@restaurant/database";
+import { sendBrowserPush } from "./web-push";
 
 type OrderStatus = "PENDING" | "CONFIRMED" | "ACCEPTED" | "PREPARING" | "READY" | "OUT_FOR_DELIVERY" | "COMPLETED" | "CANCELLED";
 
@@ -13,22 +14,26 @@ const statusCopy: Record<OrderStatus, { title: string; body: string; priority: "
   CANCELLED: { title: "Order cancelled", body: "Your order has been cancelled. Contact the restaurant if you need help.", priority: "HIGH" },
 };
 
-async function sendExpoPush(notificationId: string, orderId: string, userId: string | null, title: string, body: string, data: Record<string, string>) {
-  const [accountDevices, guestDevices] = await Promise.all([
+async function sendPushNotifications(notificationId: string, orderId: string, userId: string | null, title: string, body: string, data: Record<string, string>) {
+  const [accountDevices, guestDevices, browserSubscriptions, preference] = await Promise.all([
     userId ? prisma.pushDeviceToken.findMany({ where: { userId, disabledAt: null, platform: { in: ["IOS", "ANDROID"] } }, select: { id: true, token: true } }) : Promise.resolve([]),
     prisma.guestPushDeviceToken.findMany({ where: { orderId, disabledAt: null, platform: { in: ["IOS", "ANDROID"] } }, select: { id: true, token: true } }),
+    userId ? prisma.webPushSubscription.findMany({ where: { userId, disabledAt: null }, select: { id: true, endpoint: true, p256dh: true, auth: true } }) : Promise.resolve([]),
+    userId ? prisma.notificationPreference.findUnique({ where: { userId_category: { userId, category: "ORDERS" } }, select: { push: true } }) : Promise.resolve(null),
   ]);
-  const preference = userId ? await prisma.notificationPreference.findUnique({ where: { userId_category: { userId, category: "ORDERS" } }, select: { push: true } }) : null;
   if (preference?.push === false) return;
+
   const devices = [
     ...accountDevices.map(device => ({ ...device, kind: "ACCOUNT" as const })),
     ...guestDevices.map(device => ({ ...device, kind: "GUEST" as const })),
   ];
-  if (!devices.length) return;
 
   for (const device of devices) {
+    const key = { notificationId_channel_target: { notificationId, channel: "PUSH" as const, target: device.id } };
+    const existing = await prisma.notificationDelivery.findUnique({ where: key.notificationId_channel_target, select: { id: true, status: true } });
+    if (existing?.status === "SENT" || existing?.status === "DELIVERED") continue;
     const delivery = await prisma.notificationDelivery.upsert({
-      where: { notificationId_channel_target: { notificationId, channel: "PUSH", target: device.id } },
+      where: key.notificationId_channel_target,
       create: { notificationId, channel: "PUSH", target: device.id, status: "PROCESSING", attempts: 1 },
       update: { status: "PROCESSING", attempts: { increment: 1 }, lastError: null },
     });
@@ -36,17 +41,9 @@ async function sendExpoPush(notificationId: string, orderId: string, userId: str
       const response = await fetch("https://exp.host/--/api/v2/push/send", {
         method: "POST",
         headers: { "Content-Type": "application/json", Accept: "application/json" },
-        body: JSON.stringify({
-          to: device.token,
-          title,
-          body,
-          sound: "default",
-          priority: "high",
-          channelId: "orders",
-          data,
-        }),
+        body: JSON.stringify({ to: device.token, title, body, sound: "default", priority: "high", channelId: "orders", data }),
       });
-      const result = await response.json() as { data?: { status?: string; id?: string; message?: string; details?: { error?: string } }; errors?: unknown[] };
+      const result = await response.json() as { data?: { status?: string; id?: string; message?: string; details?: { error?: string } } };
       const ticket = result.data;
       if (!response.ok || !ticket || ticket.status !== "ok") {
         const reason = ticket?.message ?? "Expo push provider rejected the message.";
@@ -65,6 +62,41 @@ async function sendExpoPush(notificationId: string, orderId: string, userId: str
       await prisma.notificationDelivery.update({
         where: { id: delivery.id },
         data: { status: "FAILED", lastError: error instanceof Error ? error.message.slice(0, 500) : "Push delivery failed." },
+      });
+    }
+  }
+
+  for (const subscription of browserSubscriptions) {
+    const key = { notificationId_channel_target: { notificationId, channel: "PUSH" as const, target: subscription.id } };
+    const existing = await prisma.notificationDelivery.findUnique({ where: key.notificationId_channel_target, select: { id: true, status: true } });
+    if (existing?.status === "SENT" || existing?.status === "DELIVERED") continue;
+    const delivery = await prisma.notificationDelivery.upsert({
+      where: key.notificationId_channel_target,
+      create: { notificationId, channel: "PUSH", target: subscription.id, status: "PROCESSING", attempts: 1 },
+      update: { status: "PROCESSING", attempts: { increment: 1 }, lastError: null },
+    });
+    try {
+      const result = await sendBrowserPush(subscription, {
+        title,
+        body,
+        url: "/admin/notifications",
+      });
+      if (!result.ok) {
+        const reason = `Browser push endpoint returned HTTP ${result.status}.`;
+        await prisma.notificationDelivery.update({ where: { id: delivery.id }, data: { status: "FAILED", lastError: reason } });
+        if (result.status === 404 || result.status === 410) {
+          await prisma.webPushSubscription.update({ where: { id: subscription.id }, data: { disabledAt: new Date() } });
+        }
+        continue;
+      }
+      await prisma.notificationDelivery.update({
+        where: { id: delivery.id },
+        data: { status: "SENT", providerId: result.providerId, sentAt: new Date(), lastError: null },
+      });
+    } catch (error) {
+      await prisma.notificationDelivery.update({
+        where: { id: delivery.id },
+        data: { status: "FAILED", lastError: error instanceof Error ? error.message.slice(0, 500) : "Browser push delivery failed." },
       });
     }
   }
@@ -136,13 +168,11 @@ export async function notifyOrderStatusChange(orderId: string, fromStatus: strin
       update: {},
       select: { id: true },
     });
-    await sendExpoPush(notification.id, order.id, userId, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
-      notificationId: notification.id,
-      type: "ORDER_STATUS",
-      orderId: order.id,
-      route: "/orders",
+    await sendPushNotifications(notification.id, order.id, userId, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
+      notificationId: notification.id, type: "ORDER_STATUS", orderId: order.id, route: "/orders",
     });
   }
+
   if (!order.customerId && customerStatuses.includes(status)) {
     const guestReference = order.payments[0]?.reference;
     if (guestReference) {
@@ -158,7 +188,7 @@ export async function notifyOrderStatusChange(orderId: string, fromStatus: strin
         update: {},
         select: { id: true },
       });
-      await sendExpoPush(notification.id, order.id, null, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
+      await sendPushNotifications(notification.id, order.id, null, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
         notificationId: notification.id, type: "ORDER_STATUS", orderId: order.id, route: "/orders",
       });
     }
