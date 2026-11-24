@@ -4,8 +4,6 @@ self.addEventListener("push", event => {
   const title = typeof payload.title === "string" ? payload.title : "SAJE update";
   const options = {
     body: typeof payload.body === "string" ? payload.body : "You have a new restaurant update.",
-    icon: "/icon.png",
-    badge: "/icon.png",
     tag: payload.tag || "saje-notification",
     data: { url: typeof payload.url === "string" ? payload.url : "/admin/notifications" },
     renotify: false
