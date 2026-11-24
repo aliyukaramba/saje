@@ -80,6 +80,7 @@ export async function startCheckout(input: CheckoutInput): Promise<CheckoutResul
   if (!res.ok || !data.checkoutUrl || !data.orderNumber || !data.reference) {
     throw new Error(data.error ?? "We could not start your order. Please try again.");
   }
+  void import("./notifications").then(({ registerGuestOrderPush }) => registerGuestOrderPush(data.reference!).catch(() => undefined));
   return { checkoutUrl: data.checkoutUrl, orderNumber: data.orderNumber, reference: data.reference };
 }
 
