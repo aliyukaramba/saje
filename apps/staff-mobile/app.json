@@ -1,0 +1,20 @@
+{
+  "expo": {
+    "name": "SAJE Staff",
+    "slug": "saje-staff",
+    "scheme": "sajestaff",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#f7f7f8",
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.saje.staff"
+    },
+    "android": {
+      "package": "com.saje.staff"
+    },
+    "plugins": ["expo-router"],
+    "experiments": { "typedRoutes": true }
+  }
+}
