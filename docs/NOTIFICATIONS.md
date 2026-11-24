@@ -20,7 +20,7 @@ SAJE has one restaurant configuration. Notifications are shared by the customer 
 
 ## Durable retry dispatcher
 
-Order-status events are written to the PostgreSQL notification outbox. The request path attempts immediate delivery; failed/pending outbox events can be retried by the protected dispatcher.
+Order-status, delivery-assignment, new-reservation and failed-payment events are written to the PostgreSQL notification outbox. The request path attempts immediate delivery; failed/pending outbox events can be retried by the protected dispatcher. POS and QR-table orders notify kitchen and management staff; verified Topify payments notify customers and the kitchen; failed Topify payments notify the customer and payment-handling staff; delivery assignment/pickup/completion updates notify the relevant team and customer.
 
 Set a random secret of at least 32 characters as the Cloudflare Worker secret `NOTIFICATION_CRON_SECRET`. Add the same value as a GitHub Actions repository secret named `NOTIFICATION_CRON_SECRET`. Optionally set the GitHub Actions repository variable `SAJE_API_URL`; otherwise the retry workflow uses the SAJE Worker URL.
 
@@ -38,3 +38,27 @@ The notification schema migration is in `packages/database/prisma/migrations/202
 - Confirm invalid Expo tokens and expired Web Push endpoints are disabled.
 - Confirm a failed outbox event retries and becomes processed.
 - Confirm staff only receive notifications allowed by their roles and preferences.
+
+
+## Event coverage
+
+| Event | Recipients |
+| --- | --- |
+| Online payment confirmed / new QR-table order / POS sale | Kitchen staff and managers; customer for online orders |
+| Kitchen accepted, preparing, ready, cancelled | Customer where linked; assigned waiter or relevant service staff |
+| Delivery assigned | Assigned driver, customer where linked, managers |
+| Delivery picked up / completed | Customer and delivery staff |
+| Topify payment failed | Customer, cashier and managers |
+| New reservation request | Managers and waiters |
+| Guest QR-table order updates | Devices registered against that order during the open table session |
+
+In-app notifications are persisted independently from push delivery. A push provider failure must not remove the in-app record. Staff push tokens are deactivated when the staff member signs out of the staff app.
+
+## Important limits
+
+- Customer mobile guest ordering uses a payment reference or active table QR session to associate push tokens with an order; it does not require a customer account.
+- Staff mobile push requires a signed-in staff account and a physical iOS/Android device.
+- Admin browser push requires a supported browser, HTTPS, permission approval and VAPID credentials.
+- Expo ticket acceptance means the provider accepted a message; it is not proof that the phone displayed it. Test on real devices.
+- The dispatcher currently uses the protected five-minute GitHub Actions schedule and PostgreSQL outbox; it does not require a Cloudflare Queue binding.
+- Email and SMS preferences are stored for future channels but those providers are not configured or sent by this implementation.
