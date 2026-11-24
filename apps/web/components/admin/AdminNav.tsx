@@ -1,3 +1,5 @@
+"use client";
+
 import Link from "next/link";
 import { canAny, type Permission, type RoleKey } from "@restaurant/shared";
 import { logoutAction } from "../../app/admin/login/actions";
@@ -5,38 +7,58 @@ import { ThemeToggle } from "../ThemeToggle";
 import type { IconName } from "../Icon";
 import { AdminLink } from "./AdminLink";
 
-const SECTIONS: { href: string; label: string; permission: Permission; icon: IconName }[] = [
-  { href: "/admin/orders", label: "Orders", permission: "orders:read", icon: "orders" },
-  { href: "/admin/receipts", label: "Receipts", permission: "orders:read", icon: "receipts" },
-  { href: "/admin/kitchen", label: "Kitchen", permission: "kitchen:view", icon: "kitchen" },
-  { href: "/admin/pos", label: "Counter", permission: "pos:sell", icon: "counter" },
-  { href: "/admin/tables", label: "Tables", permission: "tables:manage", icon: "tables" },
-  { href: "/admin/menu", label: "Menu", permission: "menu:manage", icon: "menu" },
-  { href: "/admin/dispatch", label: "Dispatch", permission: "delivery:assign", icon: "dispatch" },
-  { href: "/admin/driver", label: "My deliveries", permission: "delivery:update_own", icon: "truck" },
-  { href: "/admin/delivery", label: "Delivery", permission: "settings:manage", icon: "zone" },
-  { href: "/admin/inventory", label: "Inventory", permission: "inventory:manage", icon: "inventory" },
-  { href: "/admin/reservations", label: "Reservations", permission: "reservations:manage", icon: "reservations" },
-  { href: "/admin/reports", label: "Reports", permission: "reports:read", icon: "reports" },
-  { href: "/admin/staff", label: "Staff", permission: "staff:manage", icon: "staff" },
+const GROUPS: { label: string; items: { href: string; label: string; permission: Permission; icon: IconName }[] }[] = [
+  { label: "WORKSPACE", items: [
+    { href: "/admin/orders", label: "Orders", permission: "orders:read", icon: "orders" },
+    { href: "/admin/receipts", label: "Receipts", permission: "orders:read", icon: "receipts" },
+    { href: "/admin/kitchen", label: "Kitchen", permission: "kitchen:view", icon: "kitchen" },
+    { href: "/admin/pos", label: "Point of sale", permission: "pos:sell", icon: "counter" },
+    { href: "/admin/tables", label: "Tables", permission: "tables:manage", icon: "tables" },
+    { href: "/admin/reservations", label: "Reservations", permission: "reservations:manage", icon: "reservations" },
+    { href: "/admin/dispatch", label: "Dispatch", permission: "delivery:assign", icon: "dispatch" },
+    { href: "/admin/driver", label: "My deliveries", permission: "delivery:update_own", icon: "truck" },
+  ]},
+  { label: "MANAGEMENT", items: [
+    { href: "/admin/menu", label: "Menu", permission: "menu:manage", icon: "menu" },
+    { href: "/admin/inventory", label: "Inventory", permission: "inventory:manage", icon: "inventory" },
+    { href: "/admin/delivery", label: "Delivery settings", permission: "settings:manage", icon: "zone" },
+    { href: "/admin/staff", label: "Team", permission: "staff:manage", icon: "staff" },
+  ]},
+  { label: "INSIGHTS", items: [
+    { href: "/admin/reports", label: "Reports", permission: "reports:read", icon: "reports" },
+  ]},
 ];
 
-/** Sidebar on desktop, top bar on phones. Only shows sections the user's roles can open. */
 export function AdminNav({ roleKeys }: { roleKeys: RoleKey[] }) {
-  const sections = SECTIONS.filter((s) => canAny(roleKeys, s.permission));
   return (
     <aside className="admin-side" aria-label="Admin navigation">
-      <Link className="brand" href="/admin">Admin<span>.</span></Link>
+      <div className="admin-brand-row">
+        <Link className="admin-brand" href="/admin" aria-label="SAJE admin home">
+          <span className="admin-brand-mark">S</span>
+          <span>SAJE<span className="admin-brand-dot">.</span></span>
+        </Link>
+        <span className="admin-workspace-label">RESTAURANT WORKSPACE</span>
+      </div>
       <nav aria-label="Admin sections" className="admin-links">
-        <AdminLink href="/admin" label="Overview" icon="overview" exact />
-        {sections.map((s) => (
-          <AdminLink key={s.href} href={s.href} label={s.label} icon={s.icon} />
-        ))}
+        <div className="admin-nav-group">
+          <span className="admin-nav-label">OVERVIEW</span>
+          <AdminLink href="/admin" label="Dashboard" icon="overview" exact />
+        </div>
+        {GROUPS.map((group) => {
+          const items = group.items.filter((item) => canAny(roleKeys, item.permission));
+          if (!items.length) return null;
+          return (
+            <div className="admin-nav-group" key={group.label}>
+              <span className="admin-nav-label">{group.label}</span>
+              {items.map((item) => <AdminLink key={item.href} href={item.href} label={item.label} icon={item.icon} />)}
+            </div>
+          );
+        })}
       </nav>
       <div className="admin-foot">
         <ThemeToggle />
         <form action={logoutAction} className="admin-signout">
-          <button className="pill" type="submit">Sign out</button>
+          <button className="admin-signout-button" type="submit"><span aria-hidden="true">↗</span> Sign out</button>
         </form>
       </div>
     </aside>
