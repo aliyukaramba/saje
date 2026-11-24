@@ -342,7 +342,7 @@ function KitchenBoard({ token, user, orders, onRefresh, onLogout }: {
             <Text style={kitchenStyles.heading}>Kitchen display</Text>
             <Text style={styles.muted}>Hi {user.fullName.split(" ")[0]}, here is your live ticket queue.</Text>
           </View>
-          <Pressable onPress={onLogout} style={styles.logout}><Ionicons name="log-out-outline" size={20} color={colors.text} /></Pressable>
+          <View style={{ flexDirection: "row", gap: 8 }}><Pressable onPress={() => router.push("/notifications")} style={styles.logout} accessibilityRole="button" accessibilityLabel="Notifications"><Ionicons name="notifications-outline" size={20} color={colors.text} /></Pressable><Pressable onPress={onLogout} style={styles.logout} accessibilityRole="button" accessibilityLabel="Sign out"><Ionicons name="log-out-outline" size={20} color={colors.text} /></Pressable></View>
         </View>
         <View style={kitchenStyles.summary}>
           <View style={kitchenStyles.summaryCell}><Text style={kitchenStyles.summaryNumber}>{incoming.length}</Text><Text style={kitchenStyles.summaryLabel}>NEW</Text></View>
