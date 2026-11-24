@@ -350,3 +350,98 @@ export async function notifyReservationCreated(reservationId: string) {
     data: { status: "PROCESSED", processedAt: new Date(), attempts: { increment: 1 }, lastError: null },
   });
 }
+
+
+/** Alert the customer and payment-handling staff when a gateway payment fails. */
+export async function notifyPaymentFailed(paymentId: string) {
+  const payment = await prisma.payment.findUnique({
+    where: { id: paymentId },
+    select: {
+      id: true, reference: true,
+      order: { select: { id: true, orderNumber: true, customerId: true } },
+    },
+  });
+  if (!payment) return;
+
+  const staff = await prisma.user.findMany({
+    where: {
+      kind: "STAFF", status: "ACTIVE", deletedAt: null,
+      roles: { some: { role: { key: { in: ["cashier", "restaurant_manager", "super_admin"] } } } },
+    },
+    select: { id: true },
+  });
+  const eventKey = `order:${payment.order.id}:payment:${payment.id}:failed`;
+  const event = await prisma.notificationOutboxEvent.upsert({
+    where: { idempotencyKey: eventKey },
+    create: {
+      eventType: "PAYMENT_FAILED", aggregateType: "Order", aggregateId: payment.order.id,
+      idempotencyKey: eventKey, payload: { paymentId: payment.id },
+    },
+    update: {},
+  });
+
+  const recipients = [
+    ...staff.map(person => ({
+      userId: person.id,
+      title: "Payment failed",
+      body: `A payment attempt for order #${payment.order.orderNumber} was not completed.`,
+    })),
+    ...(payment.order.customerId ? [{
+      userId: payment.order.customerId,
+      title: "Payment not completed",
+      body: `Payment for order #${payment.order.orderNumber} could not be completed. You can try again or contact the restaurant.`,
+    }] : []),
+  ];
+
+  for (const recipient of recipients) {
+    const preference = await prisma.notificationPreference.findUnique({
+      where: { userId_category: { userId: recipient.userId, category: "ORDERS" } },
+      select: { inApp: true, push: true },
+    });
+    const inAppEnabled = preference?.inApp !== false;
+    const pushEnabled = preference?.push !== false;
+    if (!inAppEnabled && !pushEnabled) continue;
+    const dedupeKey = `${eventKey}:user:${recipient.userId}`;
+    const notification = await prisma.notification.upsert({
+      where: { dedupeKey },
+      create: {
+        userId: recipient.userId, channel: inAppEnabled ? "IN_APP" : "PUSH",
+        type: "PAYMENT_FAILED", category: "ORDERS", title: recipient.title, body: recipient.body,
+        priority: "HIGH", dedupeKey, relatedEntityType: "Order", relatedEntityId: payment.order.id,
+        payload: { orderId: payment.order.id, orderNumber: payment.order.orderNumber, route: "/orders" },
+      },
+      update: {},
+      select: { id: true },
+    });
+    if (pushEnabled) {
+      await sendPushNotifications(notification.id, payment.order.id, recipient.userId, recipient.title, recipient.body, {
+        notificationId: notification.id, type: "PAYMENT_FAILED", orderId: payment.order.id, route: "/orders",
+      });
+    }
+  }
+
+  if (!payment.order.customerId) {
+    const title = "Payment not completed";
+    const body = `Payment for order #${payment.order.orderNumber} could not be completed. Please try again or contact the restaurant.`;
+    const dedupeKey = `${eventKey}:guest`;
+    const notification = await prisma.notification.upsert({
+      where: { dedupeKey },
+      create: {
+        userId: null, guestReference: payment.reference, channel: "IN_APP",
+        type: "PAYMENT_FAILED", category: "ORDERS", title, body, priority: "HIGH",
+        dedupeKey, relatedEntityType: "Order", relatedEntityId: payment.order.id,
+        payload: { orderId: payment.order.id, orderNumber: payment.order.orderNumber, route: "/notifications" },
+      },
+      update: {},
+      select: { id: true },
+    });
+    await sendPushNotifications(notification.id, payment.order.id, null, title, body, {
+      notificationId: notification.id, type: "PAYMENT_FAILED", orderId: payment.order.id, route: "/notifications",
+    });
+  }
+
+  await prisma.notificationOutboxEvent.update({
+    where: { id: event.id },
+    data: { status: "PROCESSED", processedAt: new Date(), attempts: { increment: 1 }, lastError: null },
+  });
+}
