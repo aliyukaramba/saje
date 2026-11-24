@@ -10,7 +10,9 @@
     "ios": {
       "supportsTablet": false,
       "bundleIdentifier": "com.saje.customer",
-      "associatedDomains": ["applinks:saje-web.akarambaaleeyu.workers.dev"]
+      "associatedDomains": [
+        "applinks:saje-web.akarambaaleeyu.workers.dev"
+      ]
     },
     "android": {
       "package": "com.saje.customer",
@@ -25,7 +27,10 @@
               "pathPrefix": "/t/"
             }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -37,7 +42,8 @@
         {
           "cameraPermission": "Allow SAJE to use your camera to scan restaurant table QR codes."
         }
-      ]
+      ],
+      "expo-notifications"
     ],
     "icon": "./assets/icon.png",
     "splash": {
