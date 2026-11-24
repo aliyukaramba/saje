@@ -453,3 +453,308 @@
   .admin-layout .product-grid { grid-template-columns: 1fr; }
   .admin-layout .admin-main { padding-left: 12px; padding-right: 12px; }
 }
+
+
+/* POS register: product browsing on the left, focused payment workflow on the right. */
+.admin-layout .pos-register {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 390px);
+  gap: 24px;
+  align-items: start;
+}
+.admin-layout .pos-catalog,
+.admin-layout .pos-checkout { min-width: 0; }
+.admin-layout .pos-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 0 0 18px;
+}
+.admin-layout .pos-eyebrow {
+  display: block;
+  margin-bottom: 7px;
+  color: var(--admin-orange);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .15em;
+}
+.admin-layout .pos-section-heading h2 {
+  margin: 0;
+  color: var(--admin-text);
+  font-size: 20px;
+  font-weight: 760;
+  letter-spacing: -.04em;
+}
+.admin-layout .pos-section-heading p {
+  margin: 6px 0 0;
+  color: var(--admin-muted);
+  font-size: 12px;
+}
+.admin-layout .pos-count {
+  flex: 0 0 auto;
+  padding: 7px 10px;
+  border: 1px solid var(--admin-border);
+  border-radius: 999px;
+  background: var(--admin-panel);
+  color: var(--admin-muted);
+  font-size: 11px;
+  font-weight: 700;
+}
+.admin-layout .pos-customer-field {
+  display: grid;
+  gap: 8px;
+  max-width: 460px;
+  margin-bottom: 18px;
+  color: var(--admin-text);
+  font-size: 12px;
+  font-weight: 700;
+}
+.admin-layout .pos-customer-field small {
+  margin-left: 5px;
+  color: var(--admin-muted);
+  font-size: 10px;
+  font-weight: 500;
+}
+.admin-layout .pos-product-copy { min-width: 0; }
+.admin-layout .pos-product-copy h3 { margin: 0 0 5px; }
+.admin-layout .pos-product-price {
+  display: inline-block;
+  margin-top: 13px;
+  color: #bd5a20;
+  font-size: 14px;
+  font-weight: 800;
+}
+.admin-layout .pos-product-qty { display: flex; align-items: center; }
+.admin-layout .pos-checkout {
+  position: sticky;
+  top: 20px;
+  padding: 20px;
+  border: 1px solid var(--admin-border);
+  border-radius: 16px;
+  background: var(--admin-panel);
+  box-shadow: var(--admin-shadow);
+}
+.admin-layout .pos-checkout-heading { margin-bottom: 17px; }
+.admin-layout .pos-cart-summary {
+  overflow: hidden;
+  margin-bottom: 20px;
+  border: 1px solid var(--admin-border);
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--admin-panel) 78%, var(--admin-bg));
+}
+.admin-layout .pos-cart-summary-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 13px;
+  border-bottom: 1px solid var(--admin-border);
+  font-size: 12px;
+}
+.admin-layout .pos-cart-summary-top span {
+  color: var(--admin-muted);
+  font-size: 10px;
+  font-weight: 650;
+}
+.admin-layout .pos-cart-empty {
+  margin: 0;
+  padding: 17px 13px;
+  color: var(--admin-muted);
+  font-size: 11px;
+  line-height: 1.5;
+}
+.admin-layout .pos-cart-list {
+  display: grid;
+  gap: 0;
+  margin: 0;
+  padding: 0 13px;
+  list-style: none;
+}
+.admin-layout .pos-cart-list li {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 11px 0;
+  border-bottom: 1px solid var(--admin-border);
+}
+.admin-layout .pos-cart-list li:last-child { border-bottom: 0; }
+.admin-layout .pos-cart-item-name { display: grid; gap: 3px; min-width: 0; }
+.admin-layout .pos-cart-item-name strong {
+  overflow-wrap: anywhere;
+  color: var(--admin-text);
+  font-size: 11px;
+}
+.admin-layout .pos-cart-item-name small { color: var(--admin-muted); font-size: 10px; }
+.admin-layout .pos-cart-qty { display: flex; align-items: center; gap: 6px; flex: 0 0 auto; }
+.admin-layout .pos-cart-qty button {
+  width: 25px; min-width: 25px; height: 25px; min-height: 25px;
+  padding: 0; border-radius: 7px; font-size: 15px;
+}
+.admin-layout .pos-cart-qty span { min-width: 14px; text-align: center; font-size: 11px; font-weight: 700; }
+.admin-layout .pos-payment-methods {
+  min-width: 0;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+.admin-layout .pos-payment-methods legend {
+  margin-bottom: 11px;
+  color: var(--admin-text);
+  font-size: 13px;
+  font-weight: 750;
+}
+.admin-layout .pos-payment-options { display: grid; gap: 8px; }
+.admin-layout .pos-payment-option {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid var(--admin-border);
+  border-radius: 11px;
+  background: var(--admin-panel);
+  cursor: pointer;
+  transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+}
+.admin-layout .pos-payment-option:hover {
+  border-color: color-mix(in srgb, var(--admin-orange) 45%, var(--admin-border));
+}
+.admin-layout .pos-payment-option.is-selected {
+  border-color: var(--admin-orange);
+  background: color-mix(in srgb, var(--admin-orange) 7%, var(--admin-panel));
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--admin-orange) 10%, transparent);
+}
+.admin-layout .pos-payment-option input[type="radio"] {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  min-height: 1px;
+  opacity: 0;
+}
+.admin-layout .pos-payment-option:focus-within {
+  outline: 2px solid var(--admin-orange);
+  outline-offset: 2px;
+}
+.admin-layout .pos-payment-mark {
+  display: grid;
+  place-items: center;
+  flex: 0 0 35px;
+  width: 35px;
+  height: 35px;
+  border-radius: 9px;
+  background: var(--admin-bg);
+  color: var(--admin-text);
+  font-size: 11px;
+  font-weight: 800;
+}
+.admin-layout .pos-payment-option.is-selected .pos-payment-mark {
+  background: var(--admin-orange);
+  color: #28170d;
+}
+.admin-layout .pos-payment-copy { display: grid; gap: 3px; min-width: 0; }
+.admin-layout .pos-payment-copy strong { color: var(--admin-text); font-size: 12px; }
+.admin-layout .pos-payment-copy small { color: var(--admin-muted); font-size: 10px; line-height: 1.35; }
+.admin-layout .pos-payment-check {
+  display: grid;
+  place-items: center;
+  flex: 0 0 19px;
+  width: 19px;
+  height: 19px;
+  margin-left: auto;
+  border: 1px solid var(--admin-border);
+  border-radius: 50%;
+  color: #fff;
+  font-size: 11px;
+  font-weight: 800;
+}
+.admin-layout .pos-payment-option.is-selected .pos-payment-check {
+  border-color: var(--admin-orange);
+  background: var(--admin-orange);
+  color: #28170d;
+}
+.admin-layout .pos-cash-panel {
+  display: grid;
+  gap: 8px;
+  margin-top: 15px;
+  padding: 13px;
+  border: 1px solid color-mix(in srgb, var(--admin-orange) 28%, var(--admin-border));
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--admin-orange) 5%, var(--admin-panel));
+}
+.admin-layout .pos-cash-panel > label {
+  color: var(--admin-text);
+  font-size: 11px;
+  font-weight: 750;
+}
+.admin-layout .pos-cash-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 11px;
+  border: 1px solid var(--admin-border);
+  border-radius: 9px;
+  background: var(--admin-panel);
+}
+.admin-layout .pos-cash-input-wrap > span {
+  color: var(--admin-muted);
+  font-size: 14px;
+  font-weight: 750;
+}
+.admin-layout .pos-cash-input-wrap input {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  box-shadow: none;
+}
+.admin-layout .pos-cash-input-wrap input:focus { outline: 0; }
+.admin-layout .pos-cash-panel p,
+.admin-layout .pos-payment-note {
+  margin: 0;
+  color: var(--admin-muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+.admin-layout .pos-payment-note {
+  margin-top: 13px;
+  padding: 11px 12px;
+  border-radius: 9px;
+  background: var(--admin-bg);
+}
+.admin-layout .pos-complete-sale {
+  width: 100% !important;
+  min-height: 43px !important;
+  margin-top: 17px;
+  white-space: nowrap;
+}
+.admin-layout .pos-secure-note {
+  margin: 9px 0 0;
+  color: var(--admin-muted);
+  font-size: 10px;
+  text-align: center;
+}
+.admin-layout .pos-no-products {
+  grid-column: 1 / -1;
+  padding: 25px;
+  border: 1px dashed var(--admin-border);
+  border-radius: 12px;
+  color: var(--admin-muted);
+  font-size: 12px;
+  text-align: center;
+}
+@media (max-width: 1050px) {
+  .admin-layout .pos-register { grid-template-columns: minmax(0, 1fr) 330px; gap: 16px; }
+  .admin-layout .pos-checkout { padding: 16px; }
+}
+@media (max-width: 760px) {
+  .admin-layout .pos-register { grid-template-columns: minmax(0, 1fr); }
+  .admin-layout .pos-checkout { position: static; }
+}
+@media (max-width: 390px) {
+  .admin-layout .pos-payment-option { padding: 9px; gap: 8px; }
+  .admin-layout .pos-payment-copy small { font-size: 9px; }
+  .admin-layout .pos-complete-sale { white-space: normal; }
+}
