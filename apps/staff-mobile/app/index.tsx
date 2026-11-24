@@ -93,12 +93,12 @@ export default function StaffHome() {
     } finally { setBusy(false); }
   };
 
-  const onRefresh = async () => {
+  const onRefresh = useCallback(async () => {
     if (!token) return;
     setRefreshing(true);
     try { await load(token); } catch (e) { setError(e instanceof Error ? e.message : "Refresh failed."); }
     finally { setRefreshing(false); }
-  };
+  }, [token, load]);
 
   const onLogout = async () => {
     if (token) await signOut(token).catch(() => undefined);
@@ -134,6 +134,13 @@ export default function StaffHome() {
         </View>
       </SafeAreaView>
     );
+  }
+
+  const isKitchenOnly = user.roles.includes("kitchen_staff")
+    && !user.roles.includes("restaurant_manager")
+    && !user.roles.includes("super_admin");
+  if (isKitchenOnly) {
+    return <KitchenBoard token={token} user={user} orders={orders} onRefresh={onRefresh} onLogout={onLogout} />;
   }
 
   const home = roleHome(user.roles);
@@ -306,7 +313,11 @@ function KitchenBoard({ token, user, orders, onRefresh, onLogout }: {
               {order.items.map((item, index) => (
                 <View key={index} style={kitchenStyles.itemRow}>
                   <Text style={kitchenStyles.qty}>{item.quantity}×</Text>
-                  <Text style={kitchenStyles.itemName}>{item.name}</Text>
+                  <View style={{ flex: 1 }}>
+                    <Text style={kitchenStyles.itemName}>{item.name}</Text>
+                    {!!item.modifiers?.length && <Text style={kitchenStyles.itemExtra}>+ {item.modifiers.join(", ")}</Text>}
+                    {!!item.notes && <Text style={kitchenStyles.itemNote}>Note: {item.notes}</Text>}
+                  </View>
                 </View>
               ))}
             </View>
