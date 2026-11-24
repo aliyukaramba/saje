@@ -11,13 +11,19 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Enter your staff email and password." }, { status: 400 });
   }
 
+  const auth = getAuthService();
   try {
-    const result = await getAuthService().login(
+    const result = await auth.login(
       { email: body.email, password: body.password },
       request.headers.get("user-agent") ?? undefined,
     );
+    const revokeNewSession = async () => {
+      const session = await auth.resolveSession(result.token);
+      if (session) await auth.logout(session.sessionId);
+    };
+
     if (result.user.kind !== "STAFF") {
-      await getAuthService().logout("");
+      await revokeNewSession();
       return NextResponse.json({ error: "This account does not have staff access." }, { status: 403 });
     }
 
@@ -26,6 +32,7 @@ export async function POST(request: Request) {
       include: { roles: { include: { role: { include: { permissions: { include: { permission: true } } } } } },
     });
     if (!staff || staff.status !== "ACTIVE" || staff.deletedAt || staff.roles.length === 0) {
+      await revokeNewSession();
       return NextResponse.json({ error: "Your staff account is not active. Contact a manager." }, { status: 403 });
     }
 
