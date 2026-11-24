@@ -10,7 +10,15 @@ export async function requestStaff(request: Request, permission?: Permission) {
 
   const user = await prisma.user.findUnique({
     where: { id: session.userId },
-    include: { roles: { include: { role: true } } },
+    include: {
+      roles: {
+        include: {
+          role: {
+            include: { permissions: { include: { permission: true } } },
+          },
+        },
+      },
+    },
   });
   if (!user || user.kind !== "STAFF" || user.status !== "ACTIVE" || user.deletedAt) return null;
 
