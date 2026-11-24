@@ -136,6 +136,41 @@ enum NotificationChannel {
   SMS
 }
 
+enum NotificationPriority {
+  LOW
+  NORMAL
+  HIGH
+  URGENT
+}
+
+enum NotificationDeliveryStatus {
+  PENDING
+  PROCESSING
+  SENT
+  DELIVERED
+  FAILED
+  CANCELLED
+}
+
+enum PushPlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
+enum PushApp {
+  CUSTOMER
+  STAFF
+  ADMIN
+}
+
+enum NotificationOutboxStatus {
+  PENDING
+  PROCESSING
+  PROCESSED
+  FAILED
+}
+
 enum PromotionKind {
   PERCENT_OFF
   AMOUNT_OFF
@@ -164,6 +199,9 @@ model User {
   reviews       CustomerReview[]
   reservations  Reservation[]
   notifications Notification[]
+  pushDevices   PushDeviceToken[]
+  webPushSubscriptions WebPushSubscription[]
+  notificationPreferences NotificationPreference[]
   auditLogs     AuditLog[]
   shifts        CashShift[]
   deliveries    DeliveryAssignment[]
@@ -711,19 +749,113 @@ model CustomerReview {
 }
 
 model Notification {
-  id        String              @id @default(cuid())
-  userId    String?
-  channel   NotificationChannel
-  type      String
-  title     String
-  body      String
-  payload   Json?
-  sentAt    DateTime?
-  readAt    DateTime?
-  createdAt DateTime            @default(now())
-  user      User?               @relation(fields: [userId], references: [id], onDelete: Cascade)
+  id                String               @id @default(cuid())
+  userId            String?
+  channel           NotificationChannel @default(IN_APP)
+  type              String
+  category          String               @default("GENERAL")
+  title             String
+  body              String
+  payload           Json?
+  priority          NotificationPriority @default(NORMAL)
+  dedupeKey         String?              @unique
+  relatedEntityType String?
+  relatedEntityId   String?
+  expiresAt         DateTime?
+  sentAt            DateTime?
+  readAt            DateTime?
+  createdAt         DateTime             @default(now())
+  user              User?                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  deliveries        NotificationDelivery[]
 
-  @@index([userId, readAt])
+  @@index([userId, readAt, createdAt])
+  @@index([category, createdAt])
+  @@index([relatedEntityType, relatedEntityId])
+}
+
+model PushDeviceToken {
+  id             String       @id @default(cuid())
+  userId         String
+  installationId String
+  token          String       @unique
+  platform       PushPlatform
+  app            PushApp
+  deviceName     String?
+  appVersion     String?
+  lastSeenAt     DateTime     @default(now())
+  disabledAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  user           User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, installationId, app])
+  @@index([userId, disabledAt])
+}
+
+model WebPushSubscription {
+  id         String    @id @default(cuid())
+  userId     String
+  endpoint   String    @unique
+  p256dh     String
+  auth       String
+  userAgent  String?
+  disabledAt DateTime?
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, disabledAt])
+}
+
+model NotificationPreference {
+  id        String   @id @default(cuid())
+  userId    String
+  category  String
+  inApp     Boolean  @default(true)
+  push      Boolean  @default(true)
+  email     Boolean  @default(false)
+  sms       Boolean  @default(false)
+  updatedAt DateTime @updatedAt
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, category])
+}
+
+model NotificationDelivery {
+  id          String                     @id @default(cuid())
+  notificationId String
+  channel     NotificationChannel
+  target      String
+  status      NotificationDeliveryStatus @default(PENDING)
+  attempts    Int                        @default(0)
+  providerId  String?
+  lastError   String?
+  sentAt      DateTime?
+  deliveredAt DateTime?
+  createdAt   DateTime                   @default(now())
+  updatedAt   DateTime                   @updatedAt
+  notification Notification               @relation(fields: [notificationId], references: [id], onDelete: Cascade)
+
+  @@unique([notificationId, channel, target])
+  @@index([status, createdAt])
+}
+
+model NotificationOutboxEvent {
+  id             String                  @id @default(cuid())
+  eventType      String
+  aggregateType  String
+  aggregateId    String
+  idempotencyKey String                  @unique
+  payload        Json
+  status         NotificationOutboxStatus @default(PENDING)
+  attempts       Int                     @default(0)
+  availableAt    DateTime                @default(now())
+  processedAt    DateTime?
+  lastError      String?
+  createdAt      DateTime                @default(now())
+
+  @@index([status, availableAt])
+  @@index([aggregateType, aggregateId])
 }
 
 // ---------- Marketing & POS shifts ----------
