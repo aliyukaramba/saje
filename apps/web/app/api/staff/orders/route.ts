@@ -11,7 +11,7 @@ export async function GET(request: Request) {
   const orders = await prisma.order.findMany({
     where: { status: { notIn: ["COMPLETED", "CANCELLED"] } },
     include: {
-      items: { select: { quantity: true, nameSnapshot: true } },
+      items: { select: { quantity: true, nameSnapshot: true, notes: true, modifiers: { select: { nameSnapshot: true } } } },
       session: { select: { table: { select: { number: true } } } },
     },
     orderBy: [{ placedAt: "asc" }],
@@ -29,7 +29,7 @@ export async function GET(request: Request) {
       tableNumber: order.session?.table.number ?? null,
       total: `₦${Number(order.total.toString()).toLocaleString("en-NG", { minimumFractionDigits: 2 })}`,
       placedAt: order.placedAt.toISOString(),
-      items: order.items.map((item) => ({ name: item.nameSnapshot, quantity: item.quantity })),
+      items: order.items.map((item) => ({ name: item.nameSnapshot, quantity: item.quantity, notes: item.notes, modifiers: item.modifiers.map((modifier) => modifier.nameSnapshot) })),
     })),
   });
 }
