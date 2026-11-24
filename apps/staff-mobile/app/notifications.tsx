@@ -109,7 +109,7 @@ const styles = StyleSheet.create({
   dot: { width: 8, height: 8, borderRadius: 4, backgroundColor: "#a1a1aa", marginTop: 6 },
   important: { backgroundColor: colors.accent },
   row: { flexDirection: "row", justifyContent: "space-between", alignItems: "center", gap: 8 },
-  cardTitle: { fontSize: 14, fontWeight: "750", color: colors.text, flex: 1 },
+  cardTitle: { fontSize: 14, fontWeight: "700", color: colors.text, flex: 1 },
   new: { color: colors.accent, fontSize: 9, fontWeight: "900" },
   body: { color: colors.muted, fontSize: 13, lineHeight: 19, marginTop: 6 },
   time: { color: colors.muted, fontSize: 10, marginTop: 10 },
