@@ -92,6 +92,7 @@
   font: inherit; font-size: 12px; font-weight: 600; cursor: pointer;
 }
 .admin-layout .admin-signout-button:hover { color: var(--admin-text); background: var(--admin-bg); }
+.admin-layout .shell { max-width: none; margin: 0; padding-left: 0 !important; padding-right: 0 !important; }
 .admin-layout .admin-main {
   width: 100%; max-width: 1680px; min-width: 0;
   margin: 0 auto; padding: 34px clamp(20px, 3vw, 48px) 64px;
