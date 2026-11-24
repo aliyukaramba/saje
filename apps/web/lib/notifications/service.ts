@@ -284,3 +284,69 @@ export async function notifyDeliveryAssigned(orderId: string, driverId: string) 
     data: { status: "PROCESSED", processedAt: new Date(), attempts: { increment: 1 }, lastError: null },
   });
 }
+
+
+/** Alert the restaurant team when a guest submits a reservation request. */
+export async function notifyReservationCreated(reservationId: string) {
+  const reservation = await prisma.reservation.findUnique({
+    where: { id: reservationId },
+    select: { id: true, guestName: true, partySize: true, startsAt: true },
+  });
+  if (!reservation) return;
+
+  const staff = await prisma.user.findMany({
+    where: {
+      kind: "STAFF", status: "ACTIVE", deletedAt: null,
+      roles: { some: { role: { key: { in: ["restaurant_manager", "super_admin", "waiter"] } } } },
+    },
+    select: { id: true },
+  });
+  const eventKey = `reservation:${reservation.id}:created`;
+  const event = await prisma.notificationOutboxEvent.upsert({
+    where: { idempotencyKey: eventKey },
+    create: {
+      eventType: "RESERVATION_CREATED", aggregateType: "Reservation", aggregateId: reservation.id,
+      idempotencyKey: eventKey,
+      payload: { reservationId: reservation.id },
+    },
+    update: {},
+  });
+
+  const date = reservation.startsAt.toLocaleString("en-NG", {
+    day: "numeric", month: "short", hour: "2-digit", minute: "2-digit",
+  });
+  const title = "New reservation request";
+  const body = `${reservation.guestName} · ${reservation.partySize} guests · ${date}`;
+  for (const person of staff) {
+    const preference = await prisma.notificationPreference.findUnique({
+      where: { userId_category: { userId: person.id, category: "GENERAL" } },
+      select: { inApp: true, push: true },
+    });
+    const inAppEnabled = preference?.inApp !== false;
+    const pushEnabled = preference?.push !== false;
+    if (!inAppEnabled && !pushEnabled) continue;
+    const dedupeKey = `${eventKey}:user:${person.id}`;
+    const notification = await prisma.notification.upsert({
+      where: { dedupeKey },
+      create: {
+        userId: person.id, channel: inAppEnabled ? "IN_APP" : "PUSH",
+        type: "RESERVATION_CREATED", category: "GENERAL", title, body, priority: "HIGH",
+        dedupeKey, relatedEntityType: "Reservation", relatedEntityId: reservation.id,
+        payload: { reservationId: reservation.id, route: "/admin/reservations" },
+      },
+      update: {},
+      select: { id: true },
+    });
+    if (pushEnabled) {
+      await sendPushNotifications(notification.id, "", person.id, title, body, {
+        notificationId: notification.id, type: "RESERVATION_CREATED", reservationId: reservation.id,
+        route: "/admin/reservations",
+      });
+    }
+  }
+
+  await prisma.notificationOutboxEvent.update({
+    where: { id: event.id },
+    data: { status: "PROCESSED", processedAt: new Date(), attempts: { increment: 1 }, lastError: null },
+  });
+}
