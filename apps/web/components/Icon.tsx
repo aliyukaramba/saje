@@ -1,7 +1,7 @@
 // Small line icons, drawn inline so they add no requests and follow the text colour.
 export type IconName =
   | "delivery" | "pickup" | "image" | "dish" | "plus" | "check" | "cart"
-  | "overview" | "orders" | "receipts" | "kitchen" | "counter" | "tables" | "menu"
+  | "overview" | "orders" | "notifications" | "receipts" | "kitchen" | "counter" | "tables" | "menu"
   | "dispatch" | "truck" | "zone" | "inventory" | "reservations" | "reports" | "staff";
 
 const PATHS: Record<IconName, React.ReactNode> = {
@@ -15,6 +15,7 @@ const PATHS: Record<IconName, React.ReactNode> = {
       <rect x="14" y="14" width="7" height="7" rx="1.5" />
     </>
   ),
+  notifications: <path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4" />,
   orders: (
     <>
       <rect x="5" y="4" width="14" height="17" rx="2" />
