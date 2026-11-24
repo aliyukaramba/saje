@@ -5,6 +5,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
 import { API_URL, fetchMenu, type Menu, type MenuItem } from "../../src/api";
+import { registerTableOrderPush } from "../../src/notifications";
 import { useOptionChoice } from "../../src/options";
 import { formatKobo } from "../../src/money";
 import { colors } from "../../src/theme";
@@ -98,6 +99,7 @@ export default function TableOrderScreen() {
       await AsyncStorage.setItem(storageKey, JSON.stringify(next)).catch(() => undefined);
       setLines([]);
       setSentMessage(data.orderNumber);
+      void registerTableOrderPush(token, data.orderNumber).catch(() => undefined);
       void refreshOrders();
     } catch (e) {
       setError(e instanceof Error ? e.message : "Network problem. Please try again.");
