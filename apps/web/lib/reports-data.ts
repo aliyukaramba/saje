@@ -23,7 +23,7 @@ const toMinor = (v: { toString(): string }): Minor => parseMajorToMinor(v.toStri
 
 export async function loadReport(range: RangeKey) {
   const from = rangeStart(range);
-  const [orders, payments] = await Promise.all([
+  const [orders, payments, refunds] = await Promise.all([
     prisma.order.findMany({
       where: { placedAt: { gte: from }, status: { not: "CANCELLED" } },
       include: { items: { select: { nameSnapshot: true, quantity: true, lineTotal: true } } },
@@ -33,9 +33,13 @@ export async function loadReport(range: RangeKey) {
       where: { status: "SUCCESSFUL", createdAt: { gte: from } },
       select: { method: true, amount: true },
     }),
+    prisma.refund.findMany({
+      where: { status: "SUCCESSFUL", createdAt: { gte: from } },
+      select: { amount: true, payment: { select: { method: true } } },
+    }),
   ]);
 
-  const paid = orders.filter((o) => o.paymentStatus === "PAID");
+  const paid = orders.filter((o) => ["PAID", "PARTIALLY_REFUNDED", "REFUNDED"].includes(o.paymentStatus));
   const salesMinor = paid.reduce<Minor>((s, o) => s + toMinor(o.total), 0n);
   const avgMinor = paid.length ? salesMinor / BigInt(paid.length) : 0n;
 
@@ -50,6 +54,14 @@ export async function loadReport(range: RangeKey) {
 
   const byMethod = new Map<string, Minor>();
   for (const p of payments) byMethod.set(p.method, (byMethod.get(p.method) ?? 0n) + toMinor(p.amount));
+
+  // Refunds reduce the payment totals by method, and net sales.
+  let refundsMinor = 0n;
+  for (const r of refunds) {
+    const v = toMinor(r.amount);
+    refundsMinor += v;
+    byMethod.set(r.payment.method, (byMethod.get(r.payment.method) ?? 0n) - v);
+  }
 
   const dishes = new Map<string, { qty: number; minor: Minor }>();
   for (const o of paid) {
@@ -66,6 +78,8 @@ export async function loadReport(range: RangeKey) {
     orders,
     paidCount: paid.length,
     salesMinor,
+    refundsMinor,
+    netMinor: salesMinor - refundsMinor,
     avgMinor,
     byType: [...byType.entries()].map(([type, v]) => ({ type, count: v.count, minor: v.minor })),
     byMethod: [...byMethod.entries()].map(([method, minor]) => ({ method, minor })),

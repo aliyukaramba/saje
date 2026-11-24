@@ -83,6 +83,8 @@ export async function createPosOrder(
       currency: "NGN",
       reference: `${input.method}-${orderNumber}`,
       idempotencyKey: `${input.method.toLowerCase()}-${orderNumber}`,
+      cashTendered: cash !== null ? minorToDecimal(cash) : null,
+      changeGiven: change !== null ? minorToDecimal(change) : null,
     },
   });
   await db.paymentEvent.create({

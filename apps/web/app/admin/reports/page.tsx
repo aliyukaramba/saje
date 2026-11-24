@@ -31,9 +31,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
       <div className="stat-grid" style={{ marginTop: 16 }}>
         <section className="card stat-hero">
-          <h3>Paid sales</h3>
-          <div className="big">{formatMinor(report.salesMinor as Minor)}</div>
-          <p>{report.paidCount} paid order{report.paidCount === 1 ? "" : "s"}</p>
+          <h3>Net sales</h3>
+          <div className="big">{formatMinor(report.netMinor as Minor)}</div>
+          <p>{report.paidCount} paid order{report.paidCount === 1 ? "" : "s"} · refunds {formatMinor(report.refundsMinor as Minor)}</p>
         </section>
         <section className="card">
           <h3>Average order</h3>

@@ -23,6 +23,7 @@ export const PERMISSIONS = [
   "delivery:assign",
   "delivery:update_own",
   "reports:read",
+  "refunds:issue",
   "staff:manage",
   "settings:manage",
   "audit:read",

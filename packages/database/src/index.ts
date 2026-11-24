@@ -8,4 +8,5 @@ export type * from "@prisma/client";
 export * from "./stores/table-orders";
 export * from "./stores/pos";
 export * from "./stores/delivery";
+export * from "./stores/refunds";
 export * from "./stores/inventory";
