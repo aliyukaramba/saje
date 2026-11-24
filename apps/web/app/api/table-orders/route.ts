@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma, createTableOrder, OrderInputError } from "@restaurant/database";
+import { notifyOrderStatusChange } from "../../../lib/notifications/service";
 
 export const dynamic = "force-dynamic";
 
@@ -23,6 +24,17 @@ export async function POST(req: Request) {
       lines: parsed.data.lines,
       now: new Date(),
     });
+    const order = await prisma.order.findUnique({
+      where: { orderNumber: result.orderNumber },
+      select: { id: true, status: true },
+    });
+    if (order) {
+      try {
+        await notifyOrderStatusChange(order.id, "PENDING", order.status);
+      } catch (notificationError) {
+        console.error("SAJE table-order notification dispatch failed", notificationError);
+      }
+    }
     return NextResponse.json(result);
   } catch (e) {
     if (e instanceof OrderInputError) return NextResponse.json({ error: e.message }, { status: 422 });
