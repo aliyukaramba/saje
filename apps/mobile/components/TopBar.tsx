@@ -6,7 +6,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { useCart } from "../src/cart";
 import { colors } from "../src/theme";
 
-/** Top bar with frosted-glass round buttons: back or brand on the left, title in the middle, scanner and cart on the right. */
+/** Top bar with frosted-glass round buttons: back or brand on the left, title in the middle, scanner, notifications and cart on the right. */
 export function TopBar({ title = "", showBack = false }: { title?: string; showBack?: boolean }) {
   const insets = useSafeAreaInsets();
   const cart = useCart();
@@ -26,6 +26,7 @@ export function TopBar({ title = "", showBack = false }: { title?: string; showB
       <Text style={styles.title} numberOfLines={1}>{title}</Text>
       <View style={[styles.actions, { alignItems: "center" }]}>
         <GlassButton icon="qr-code-outline" label="Scan table QR code" onPress={() => router.push("/scan")} />
+        <GlassButton icon="notifications-outline" label="Order notifications" onPress={() => router.push("/notifications")} />
         <GlassButton icon="bag-handle-outline" label={`Cart, ${count} items`} onPress={() => router.push("/cart")} badge={count} />
       </View>
     </View>
