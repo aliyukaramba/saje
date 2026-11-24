@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { prisma } from "@restaurant/database";
 import { assignTable } from "@restaurant/shared";
+import { notifyReservationCreated } from "../../../lib/notifications/service";
 
 export const dynamic = "force-dynamic";
 
@@ -70,6 +71,8 @@ export async function POST(req: Request) {
       select: { id: true, guestName: true, partySize: true, startsAt: true, status: true },
     });
 
+    try { await notifyReservationCreated(reservation.id); }
+    catch (notificationError) { console.error("SAJE reservation notification dispatch failed", notificationError); }
     return NextResponse.json({ reservation }, { status: 201 });
   } catch (error) {
     // The database exclusion constraint is the final guard against concurrent double-booking.
