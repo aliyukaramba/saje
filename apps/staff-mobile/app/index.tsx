@@ -7,6 +7,7 @@ import {
 } from "react-native";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Ionicons } from "@expo/vector-icons";
+import { router } from "expo-router";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { getOrders, getProfile, signIn, signOut, updateOrderStatus, type StaffOrder, type StaffUser } from "../src/api";
 import { colors } from "../src/theme";
@@ -152,7 +153,7 @@ export default function StaffHome() {
             <Text style={styles.eyebrow}>SAJE STAFF</Text>
             <Text style={styles.greeting}>Good service starts here.</Text>
           </View>
-          <Pressable onPress={onLogout} style={styles.logout}><Ionicons name="log-out-outline" size={20} color={colors.text} /></Pressable>
+          <View style={{ flexDirection: "row", gap: 8 }}><Pressable onPress={() => router.push("/notifications")} style={styles.logout} accessibilityRole="button" accessibilityLabel="Notifications"><Ionicons name="notifications-outline" size={20} color={colors.text} /></Pressable><Pressable onPress={onLogout} style={styles.logout} accessibilityRole="button" accessibilityLabel="Sign out"><Ionicons name="log-out-outline" size={20} color={colors.text} /></Pressable></View>
         </View>
         <View style={styles.profile}>
           <View style={styles.avatar}><Text style={styles.avatarText}>{user.fullName.slice(0,1).toUpperCase()}</Text></View>
