@@ -13,17 +13,18 @@ const statusCopy: Record<OrderStatus, { title: string; body: string; priority: "
   CANCELLED: { title: "Order cancelled", body: "Your order has been cancelled. Contact the restaurant if you need help.", priority: "HIGH" },
 };
 
-async function sendExpoPush(notificationId: string, userId: string, title: string, body: string, data: Record<string, string>) {
-  const devices = await prisma.pushDeviceToken.findMany({
-    where: { userId, disabledAt: null, platform: { in: ["IOS", "ANDROID"] } },
-    select: { id: true, token: true },
-  });
-  if (!devices.length) return;
-  const preference = await prisma.notificationPreference.findUnique({
-    where: { userId_category: { userId, category: "ORDERS" } },
-    select: { push: true },
-  });
+async function sendExpoPush(notificationId: string, orderId: string, userId: string | null, title: string, body: string, data: Record<string, string>) {
+  const [accountDevices, guestDevices] = await Promise.all([
+    userId ? prisma.pushDeviceToken.findMany({ where: { userId, disabledAt: null, platform: { in: ["IOS", "ANDROID"] } }, select: { id: true, token: true } }) : Promise.resolve([]),
+    prisma.guestPushDeviceToken.findMany({ where: { orderId, disabledAt: null, platform: { in: ["IOS", "ANDROID"] } }, select: { id: true, token: true } }),
+  ]);
+  const preference = userId ? await prisma.notificationPreference.findUnique({ where: { userId_category: { userId, category: "ORDERS" } }, select: { push: true } }) : null;
   if (preference?.push === false) return;
+  const devices = [
+    ...accountDevices.map(device => ({ ...device, kind: "ACCOUNT" as const })),
+    ...guestDevices.map(device => ({ ...device, kind: "GUEST" as const })),
+  ];
+  if (!devices.length) return;
 
   for (const device of devices) {
     const delivery = await prisma.notificationDelivery.upsert({
@@ -51,7 +52,8 @@ async function sendExpoPush(notificationId: string, userId: string, title: strin
         const reason = ticket?.message ?? "Expo push provider rejected the message.";
         await prisma.notificationDelivery.update({ where: { id: delivery.id }, data: { status: "FAILED", lastError: reason } });
         if (ticket?.details?.error === "DeviceNotRegistered") {
-          await prisma.pushDeviceToken.update({ where: { id: device.id }, data: { disabledAt: new Date() } });
+          if (device.kind === "ACCOUNT") await prisma.pushDeviceToken.update({ where: { id: device.id }, data: { disabledAt: new Date() } });
+          else await prisma.guestPushDeviceToken.update({ where: { id: device.id }, data: { disabledAt: new Date() } });
         }
         continue;
       }
@@ -74,7 +76,7 @@ export async function notifyOrderStatusChange(orderId: string, fromStatus: strin
   const copy = statusCopy[status];
   const order = await prisma.order.findUnique({
     where: { id: orderId },
-    select: { id: true, orderNumber: true, customerId: true, assignedStaffId: true, type: true, tableSessionId: true },
+    select: { id: true, orderNumber: true, customerId: true, assignedStaffId: true, type: true, tableSessionId: true, payments: { select: { reference: true } } },
   });
   if (!order) return;
 
@@ -134,12 +136,32 @@ export async function notifyOrderStatusChange(orderId: string, fromStatus: strin
       update: {},
       select: { id: true },
     });
-    await sendExpoPush(notification.id, userId, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
+    await sendExpoPush(notification.id, order.id, userId, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
       notificationId: notification.id,
       type: "ORDER_STATUS",
       orderId: order.id,
       route: "/orders",
     });
+  }
+  if (!order.customerId && customerStatuses.includes(status)) {
+    const guestReference = order.payments[0]?.reference;
+    if (guestReference) {
+      const dedupeKey = `${eventKey}:guest`;
+      const notification = await prisma.notification.upsert({
+        where: { dedupeKey },
+        create: {
+          userId: null, guestReference, channel: "IN_APP", type: "ORDER_STATUS", category: "ORDERS",
+          title: copy.title, body: `${copy.body} Order #${order.orderNumber}.`, priority: copy.priority,
+          dedupeKey, relatedEntityType: "Order", relatedEntityId: order.id,
+          payload: { orderId: order.id, orderNumber: order.orderNumber, status, route: "/orders" },
+        },
+        update: {},
+        select: { id: true },
+      });
+      await sendExpoPush(notification.id, order.id, null, copy.title, `${copy.body} Order #${order.orderNumber}.`, {
+        notificationId: notification.id, type: "ORDER_STATUS", orderId: order.id, route: "/orders",
+      });
+    }
   }
   await prisma.notificationOutboxEvent.update({
     where: { id: outbox.id },
