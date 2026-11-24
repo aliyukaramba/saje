@@ -28,7 +28,7 @@ export interface StaffOrder {
   tableNumber: string | null;
   total: string;
   placedAt: string;
-  items: { name: string; quantity: number }[];
+  items: { name: string; quantity: number; notes?: string | null; modifiers?: string[] }[];
 }
 
 async function request<T>(path: string, token?: string): Promise<T> {
