@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { Stack, router, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@expo/vector-icons";
@@ -13,6 +14,7 @@ type TrackedOrder = { orderNumber: string; status: string; placedAt: string; ite
 const statusLabels: Record<string, string> = { PENDING: "Received", CONFIRMED: "Sent to kitchen", ACCEPTED: "Accepted", PREPARING: "Preparing", READY: "Ready to serve", COMPLETED: "Served", CANCELLED: "Cancelled" };
 
 export default function TableOrderScreen() {
+  const insets = useSafeAreaInsets();
   const params = useLocalSearchParams<{ token: string }>();
   const token = Array.isArray(params.token) ? params.token[0] : params.token;
   const [menu, setMenu] = useState<Menu | null>(null);
@@ -110,7 +112,7 @@ export default function TableOrderScreen() {
   return (
     <View style={styles.screen}>
       <Stack.Screen options={{ headerShown: false }} />
-      <View style={styles.header}>
+      <View style={[styles.header, { paddingTop: insets.top + 12 }]}>
         <Pressable onPress={() => router.canGoBack() ? router.back() : router.replace("/(tabs)")} style={styles.back}><Ionicons name="chevron-back" size={22} color={colors.ink} /></Pressable>
         <View style={styles.headerCopy}><Text style={styles.brand}>SAJE <Text style={styles.brandDot}>·</Text> DINE IN</Text><Text style={styles.headerTitle}>Your table menu</Text></View>
         <View style={styles.tablePill}><Ionicons name="restaurant-outline" size={14} color={colors.brand} /><Text style={styles.tablePillText}>{tableNumber ? `Table ${tableNumber}` : "Table"}</Text></View>
@@ -128,7 +130,7 @@ export default function TableOrderScreen() {
         {error ? <Text style={styles.error}>{error}</Text> : null}
         <View style={{ height: lines.length ? 110 : 24 }} />
       </ScrollView>
-      {lines.length ? <View style={styles.bottom}><Pressable disabled={busy} onPress={() => void sendOrder()} style={[styles.sendButton, busy && { opacity: 0.65 }]}><Text style={styles.sendText}>{busy ? "Sending order…" : `Send ${itemCount} ${itemCount === 1 ? "item" : "items"} to kitchen`}</Text><Ionicons name="arrow-forward" size={18} color="#fff" /></Pressable></View> : null}
+      {lines.length ? <View style={[styles.bottom, { paddingBottom: insets.bottom + 12 }]}><Pressable disabled={busy} onPress={() => void sendOrder()} style={[styles.sendButton, busy && { opacity: 0.65 }]}><Text style={styles.sendText}>{busy ? "Sending order…" : `Send ${itemCount} ${itemCount === 1 ? "item" : "items"} to kitchen`}</Text><Ionicons name="arrow-forward" size={18} color="#fff" /></Pressable></View> : null}
     </View>
   );
 }
@@ -162,7 +164,8 @@ function Category({ label, active, onPress }: { label: string; active: boolean; 
   return <Pressable onPress={onPress} style={[styles.category, active && styles.categoryActive]}><Text style={[styles.categoryText, active && styles.categoryTextActive]}>{label}</Text></Pressable>;
 }
 function Centered({ children, title, message, action }: { children?: React.ReactNode; title?: string; message?: string; action?: () => void }) {
-  return <View style={styles.centered}>{children ?? <><Ionicons name="alert-circle-outline" size={34} color={colors.danger} /><Text style={styles.centerTitle}>{title}</Text><Text style={styles.muted}>{message}</Text>{action ? <Pressable onPress={action} style={styles.retry}><Text style={styles.retryText}>Scan another QR code</Text></Pressable> : null}</>}</View>;
+  const insets = useSafeAreaInsets();
+  return <View style={[styles.centered, { paddingTop: 28 + insets.top, paddingBottom: 28 + insets.bottom }]}>{children ?? <><Ionicons name="alert-circle-outline" size={34} color={colors.danger} /><Text style={styles.centerTitle}>{title}</Text><Text style={styles.muted}>{message}</Text>{action ? <Pressable onPress={action} style={styles.retry}><Text style={styles.retryText}>Scan another QR code</Text></Pressable> : null}</>}</View>;
 }
 
 const styles = StyleSheet.create({
