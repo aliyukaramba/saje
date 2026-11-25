@@ -4,18 +4,41 @@ import { notifyDeliveryAssigned, notifyOrderStatusChange, notifyPaymentFailed, n
 
 export const dynamic = "force-dynamic";
 
+// How long a worker holds an event. If it crashes mid-dispatch, the event becomes claimable again after this.
+const CLAIM_LEASE_MS = 5 * 60_000;
+
+/** Compares two secrets without leaking how many leading characters match (hashes both to equal length). */
+async function sameSecret(provided: string, expected: string): Promise<boolean> {
+  const encoder = new TextEncoder();
+  const [a, b] = await Promise.all([
+    crypto.subtle.digest("SHA-256", encoder.encode(provided)),
+    crypto.subtle.digest("SHA-256", encoder.encode(expected)),
+  ]);
+  const x = new Uint8Array(a);
+  const y = new Uint8Array(b);
+  let diff = 0;
+  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
+  return diff === 0;
+}
+
 export async function POST(request: Request) {
   const secret = process.env.NOTIFICATION_CRON_SECRET ?? "";
   if (secret.length < 32) {
     return NextResponse.json({ error: "Notification dispatcher is not configured." }, { status: 503 });
   }
-  if (request.headers.get("authorization") !== `Bearer ${secret}`) {
+  const authorization = request.headers.get("authorization") ?? "";
+  const provided = authorization.startsWith("Bearer ") ? authorization.slice(7) : "";
+  if (!(await sameSecret(provided, secret))) {
     return NextResponse.json({ error: "Unauthorized." }, { status: 401 });
   }
 
   const now = new Date();
+  // Pending and failed events that are due, plus processing events whose lease has expired (worker crashed).
   const events = await prisma.notificationOutboxEvent.findMany({
-    where: { status: { in: ["PENDING", "FAILED"] }, availableAt: { lte: now } },
+    where: {
+      availableAt: { lte: now },
+      OR: [{ status: { in: ["PENDING", "FAILED"] } }, { status: "PROCESSING" }],
+    },
     orderBy: { createdAt: "asc" },
     take: 20,
   });
@@ -23,9 +46,14 @@ export async function POST(request: Request) {
   let processed = 0;
   let failed = 0;
   for (const event of events) {
+    // Compare-and-set on the status and due time we read, so two workers cannot claim the same event.
     const claimed = await prisma.notificationOutboxEvent.updateMany({
-      where: { id: event.id, status: event.status, availableAt: { lte: now } },
-      data: { status: "PROCESSING", attempts: { increment: 1 } },
+      where: { id: event.id, status: event.status, availableAt: event.availableAt },
+      data: {
+        status: "PROCESSING",
+        attempts: { increment: 1 },
+        availableAt: new Date(Date.now() + CLAIM_LEASE_MS),
+      },
     });
     if (!claimed.count) continue;
 
