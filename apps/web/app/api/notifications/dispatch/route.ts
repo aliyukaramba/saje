@@ -1,25 +1,9 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@restaurant/database";
+import { CLAIM_LEASE_MS, retryDelayMinutes, sameSecret } from "../../../../lib/notifications/dispatch-rules";
 import { notifyDeliveryAssigned, notifyOrderStatusChange, notifyPaymentFailed, notifyReservationCreated } from "../../../../lib/notifications/service";
 
 export const dynamic = "force-dynamic";
-
-// How long a worker holds an event. If it crashes mid-dispatch, the event becomes claimable again after this.
-const CLAIM_LEASE_MS = 5 * 60_000;
-
-/** Compares two secrets without leaking how many leading characters match (hashes both to equal length). */
-async function sameSecret(provided: string, expected: string): Promise<boolean> {
-  const encoder = new TextEncoder();
-  const [a, b] = await Promise.all([
-    crypto.subtle.digest("SHA-256", encoder.encode(provided)),
-    crypto.subtle.digest("SHA-256", encoder.encode(expected)),
-  ]);
-  const x = new Uint8Array(a);
-  const y = new Uint8Array(b);
-  let diff = 0;
-  for (let i = 0; i < x.length; i++) diff |= x[i] ^ y[i];
-  return diff === 0;
-}
 
 export async function POST(request: Request) {
   const secret = process.env.NOTIFICATION_CRON_SECRET ?? "";
@@ -86,7 +70,7 @@ export async function POST(request: Request) {
       processed += 1;
     } catch (error) {
       const attempts = event.attempts + 1;
-      const delayMinutes = Math.min(60, 2 ** Math.min(attempts, 6));
+      const delayMinutes = retryDelayMinutes(attempts);
       await prisma.notificationOutboxEvent.update({
         where: { id: event.id },
         data: {
