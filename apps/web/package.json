@@ -13,7 +13,7 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "@opennextjs/cloudflare": "^1.20.17",
+    "@opennextjs/cloudflare": "^1.20.18",
     "@restaurant/database": "*",
     "@restaurant/shared": "*",
     "next": "^16.4.6",
