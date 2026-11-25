@@ -19,6 +19,13 @@ export async function POST(request: Request) {
   if (app === "STAFF" && user.kind !== "STAFF") return NextResponse.json({ error: "Staff account required." }, { status: 403 });
   if (app === "CUSTOMER" && user.kind !== "CUSTOMER") return NextResponse.json({ error: "Customer account required." }, { status: 403 });
 
+  // A token already belonging to another account may only move over once that account has signed out
+  // (which disables the token). Otherwise a leaked token could redirect someone else's notifications.
+  const existing = await prisma.pushDeviceToken.findUnique({ where: { token }, select: { userId: true, disabledAt: true } });
+  if (existing && existing.userId !== user.id && !existing.disabledAt) {
+    return NextResponse.json({ error: "This device is still signed in to another account." }, { status: 409 });
+  }
+
   await prisma.pushDeviceToken.updateMany({
     where: { userId: user.id, installationId, app: app as "CUSTOMER" | "STAFF", disabledAt: null },
     data: { disabledAt: new Date() },
