@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { canAny } from "@restaurant/shared";
 import { staffWith } from "../../../lib/auth";
 import { loadOpenOrders } from "../../../lib/admin-orders";
 import { OrderCard } from "../../../components/admin/OrderCard";
@@ -12,7 +13,7 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   if (!staff) redirect("/admin/login");
   const { error } = await searchParams;
   const orders = await loadOpenOrders();
-  const canCancel = (await staffWith("orders:cancel")) !== null;
+  const canCancel = canAny(staff.roleKeys, "orders:cancel");
 
   return (
     <div className="shell" style={{ paddingTop: 32 }}>
