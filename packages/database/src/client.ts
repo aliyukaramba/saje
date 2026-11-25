@@ -8,16 +8,12 @@ function createClient(): PrismaClient {
   return new PrismaClient({ adapter: new PrismaNeon({ connectionString }) });
 }
 
+// Each Cloudflare Worker isolate has its own globalThis. Reuse one lazy client per isolate.
+// Lazy creation keeps Next.js builds working when the production secret is unavailable.
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-// The client is created on first use, not at import time. Next.js imports route modules while
-// building, and the build machine has no DATABASE_URL (it is a Worker secret, not a build variable).
 function getClient(): PrismaClient {
-  if (!globalForPrisma.prisma) {
-    const client = createClient();
-    if (process.env.NODE_ENV !== "production") globalForPrisma.prisma = client;
-    return client;
-  }
+  if (!globalForPrisma.prisma) globalForPrisma.prisma = createClient();
   return globalForPrisma.prisma;
 }
 

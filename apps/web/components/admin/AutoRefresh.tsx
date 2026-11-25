@@ -3,12 +3,21 @@
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// Re-fetches the server-rendered page on an interval, so the kitchen screen stays current.
+// Re-fetch server-rendered data only while the staff screen is visible.
 export function AutoRefresh({ seconds }: { seconds: number }) {
   const router = useRouter();
+
   useEffect(() => {
-    const t = setInterval(() => router.refresh(), seconds * 1000);
-    return () => clearInterval(t);
+    const refreshIfVisible = () => {
+      if (document.visibilityState === "visible" && navigator.onLine) router.refresh();
+    };
+    const timer = window.setInterval(refreshIfVisible, seconds * 1000);
+    document.addEventListener("visibilitychange", refreshIfVisible);
+    return () => {
+      window.clearInterval(timer);
+      document.removeEventListener("visibilitychange", refreshIfVisible);
+    };
   }, [router, seconds]);
+
   return null;
 }
