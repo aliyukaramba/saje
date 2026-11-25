@@ -264,6 +264,7 @@ function KitchenBoard({ token, user, orders, onRefresh, onLogout }: {
   const [busyId, setBusyId] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [refreshing, setRefreshing] = useState(false);
+  const [expandedOrders, setExpandedOrders] = useState<Set<string>>(() => new Set());
 
   useEffect(() => {
     const timer = setInterval(() => { void onRefresh(); }, 8000);
@@ -308,14 +309,28 @@ function KitchenBoard({ token, user, orders, onRefresh, onLogout }: {
         const label = kind === "incoming" ? "Accept order" : order.status === "ACCEPTED" ? "Start preparing" : "Mark ready";
         return (
           <View key={order.id} style={kitchenStyles.ticket}>
-            <View style={kitchenStyles.ticketTop}>
+            <Pressable
+              onPress={() => setExpandedOrders(current => {
+                const next = new Set(current);
+                if (next.has(order.id)) next.delete(order.id); else next.add(order.id);
+                return next;
+              })}
+              accessibilityRole="button"
+              accessibilityLabel={`Open order ${order.orderNumber} details`}
+              accessibilityState={{ expanded: expandedOrders.has(order.id) }}
+              style={kitchenStyles.ticketTop}
+            >
               <View style={{ flex: 1 }}>
                 <Text style={kitchenStyles.ticketNo}>{order.orderNumber}</Text>
                 <Text style={kitchenStyles.ticketMeta}>{order.tableNumber ? `Table ${order.tableNumber}` : order.type.replaceAll("_", " ")} · {elapsed(order.placedAt)}</Text>
+                <Text style={kitchenStyles.tapHint}>{expandedOrders.has(order.id) ? "Tap to hide details" : "Tap to view order details"}</Text>
               </View>
-              <Text style={kitchenStyles.status}>{order.status.replaceAll("_", " ")}</Text>
-            </View>
-            <View style={kitchenStyles.items}>
+              <View style={{ alignItems: "flex-end", gap: 6 }}>
+                <Text style={kitchenStyles.status}>{order.status.replaceAll("_", " ")}</Text>
+                <Ionicons name={expandedOrders.has(order.id) ? "chevron-up" : "chevron-down"} size={18} color={colors.muted} />
+              </View>
+            </Pressable>
+            {expandedOrders.has(order.id) && <View style={kitchenStyles.items}>
               {order.items.map((item, index) => (
                 <View key={index} style={kitchenStyles.itemRow}>
                   <Text style={kitchenStyles.qty}>{item.quantity}×</Text>
@@ -326,8 +341,8 @@ function KitchenBoard({ token, user, orders, onRefresh, onLogout }: {
                   </View>
                 </View>
               ))}
-            </View>
-            {!!order.guestName && <Text style={kitchenStyles.note}>Guest: {order.guestName}</Text>}
+            </View>}
+            {!!order.guestName && expandedOrders.has(order.id) && <Text style={kitchenStyles.note}>Guest: {order.guestName}</Text>}
             {next && <Pressable disabled={busyId === order.id} onPress={() => void update(order, next)} style={[kitchenStyles.action, busyId === order.id && { opacity: 0.6 }]}>
               {busyId === order.id ? <ActivityIndicator color="#fff" /> : <Text style={kitchenStyles.actionText}>{label}</Text>}
             </Pressable>}
@@ -383,6 +398,7 @@ const kitchenStyles = StyleSheet.create({
   ticketTop: { flexDirection: "row", alignItems: "flex-start", gap: 8 },
   ticketNo: { color: colors.text, fontSize: 16, fontWeight: "900" },
   ticketMeta: { color: colors.muted, fontSize: 11, marginTop: 4 },
+  tapHint: { color: colors.accent, fontSize: 10, fontWeight: "700", marginTop: 6 },
   status: { color: colors.accent, fontSize: 9, fontWeight: "900", backgroundColor: colors.accentSoft, paddingHorizontal: 8, paddingVertical: 5, borderRadius: 8, overflow: "hidden" },
   items: { borderTopWidth: 1, borderBottomWidth: 1, borderColor: colors.line, paddingVertical: 9, gap: 8 },
   itemRow: { flexDirection: "row", gap: 10, alignItems: "center" },

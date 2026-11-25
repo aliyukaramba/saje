@@ -19,7 +19,9 @@ function fail(message: string): never {
 export async function advanceOrder(formData: FormData) {
   const id = String(formData.get("id") ?? "");
   const to = String(formData.get("to") ?? "") as OrderStatus;
-  const staff = await staffWith("orders:update_status");
+  // Kitchen staff use the dedicated kitchen permission; other staff use the general order permission.
+  const kitchenTransition = ["ACCEPTED", "PREPARING", "READY"].includes(to);
+  const staff = await staffWith(kitchenTransition ? "kitchen:update" : "orders:update_status");
   if (!staff) redirect("/admin/login");
   if (!id || !ORDER_STATUSES.includes(to)) fail("Invalid request");
   if (to === "CONFIRMED") fail("Orders are confirmed automatically when payment is verified");
