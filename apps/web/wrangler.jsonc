@@ -14,6 +14,12 @@
   "observability": {
     "enabled": true
   },
+  "hyperdrive": [
+    {
+      "binding": "HYPERDRIVE",
+      "id": "dc534f4077c84478b2bfc116a6e4b5dc"
+    }
+  ],
   "r2_buckets": [
     {
       "binding": "MEDIA",
