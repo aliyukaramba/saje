@@ -1,26 +1,56 @@
 import { PrismaClient } from "@prisma/client";
 import { PrismaNeon } from "@prisma/adapter-neon";
+import { PrismaPg } from "@prisma/adapter-pg";
+import { getCloudflareContext } from "@opennextjs/cloudflare";
 
-// Neon's serverless driver works on Cloudflare Workers and Node.js. Raw Postgres sockets do not work on Workers.
-function createClient(): PrismaClient {
-  const connectionString = process.env.DATABASE_URL;
+type WorkerEnv = {
+  // Cloudflare Hyperdrive binding (set up in apps/web/wrangler.jsonc). Pools connections at the edge.
+  HYPERDRIVE?: { connectionString: string };
+  DATABASE_URL?: string;
+};
+
+/** The current request's Cloudflare context, or null outside a Worker request (local Node.js, scripts). */
+function currentRequest(): { key: object; env: WorkerEnv } | null {
+  try {
+    const { env, ctx } = getCloudflareContext({ async: false });
+    return { key: ctx as object, env: env as unknown as WorkerEnv };
+  } catch {
+    return null;
+  }
+}
+
+function createClient(env: WorkerEnv): PrismaClient {
+  // Hyperdrive reuses pooled connections, so a new client per request is cheap.
+  if (env.HYPERDRIVE) {
+    return new PrismaClient({ adapter: new PrismaPg(env.HYPERDRIVE.connectionString) });
+  }
+  // Neon's serverless driver works on Cloudflare Workers and Node.js. Raw Postgres sockets do not work
+  // on Workers unless Hyperdrive is configured.
+  const connectionString = env.DATABASE_URL ?? process.env.DATABASE_URL;
   if (!connectionString) throw new Error("DATABASE_URL is not set");
   return new PrismaClient({ adapter: new PrismaNeon({ connectionString }) });
 }
 
-// Keep a singleton only in local Node.js development. Cloudflare Workers reuse an isolate
-// across requests, but request-created I/O (including Neon pool/connection state) must not
-// be shared between invocations. In production, create a fresh client for each Prisma
-// access so no adapter or connection created by one request can leak into another.
-const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
+// One client per Worker request. Previously every property access created a new client and a new
+// connection, so a single order paid the connection setup cost several times. Caching against the
+// request's context object keeps requests isolated, because nothing is shared between invocations.
+const requestClients = new WeakMap<object, PrismaClient>();
+
+// Local Node.js (next dev, scripts): a single shared client.
+let localClient: PrismaClient | undefined;
 
 function getClient(): PrismaClient {
-  if (process.env.NODE_ENV !== "production") {
-    if (!globalForPrisma.prisma) globalForPrisma.prisma = createClient();
-    return globalForPrisma.prisma;
+  const request = currentRequest();
+  if (request) {
+    let client = requestClients.get(request.key);
+    if (!client) {
+      client = createClient(request.env);
+      requestClients.set(request.key, client);
+    }
+    return client;
   }
-
-  return createClient();
+  if (!localClient) localClient = createClient({});
+  return localClient;
 }
 
 export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
