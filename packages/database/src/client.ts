@@ -8,13 +8,19 @@ function createClient(): PrismaClient {
   return new PrismaClient({ adapter: new PrismaNeon({ connectionString }) });
 }
 
-// Each Cloudflare Worker isolate has its own globalThis. Reuse one lazy client per isolate.
-// Lazy creation keeps Next.js builds working when the production secret is unavailable.
+// Keep a singleton only in local Node.js development. Cloudflare Workers reuse an isolate
+// across requests, but request-created I/O (including Neon pool/connection state) must not
+// be shared between invocations. In production, create a fresh client for each Prisma
+// access so no adapter or connection created by one request can leak into another.
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
 function getClient(): PrismaClient {
-  if (!globalForPrisma.prisma) globalForPrisma.prisma = createClient();
-  return globalForPrisma.prisma;
+  if (process.env.NODE_ENV !== "production") {
+    if (!globalForPrisma.prisma) globalForPrisma.prisma = createClient();
+    return globalForPrisma.prisma;
+  }
+
+  return createClient();
 }
 
 export const prisma: PrismaClient = new Proxy({} as PrismaClient, {
