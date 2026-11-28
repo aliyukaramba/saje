@@ -3,6 +3,7 @@ import {
   priceCart, validateFulfilment, parseMajorToMinor,
   type CartLineInput, type CatalogProduct, type Minor, type PricedCart,
 } from "@restaurant/shared";
+import { getCachedSettings } from "./settings-cache";
 
 /** Minor units (kobo) to a decimal string for Prisma Decimal(12,2). */
 export function minorToDecimal(m: Minor): string {
@@ -66,7 +67,7 @@ export async function loadCatalog(db: PrismaClient, productIds: string[]): Promi
 
 /** Creates a pickup order with server-side pricing in one transaction. Payment is recorded as PENDING. */
 export async function createPickupOrder(db: PrismaClient, input: PickupOrderInput) {
-  const settings = await db.restaurantSettings.findUnique({ where: { id: "singleton" } });
+  const settings = await getCachedSettings(db);
   if (!settings) throw new OrderInputError("Restaurant settings are not configured");
 
   const catalog = await loadCatalog(db, [...new Set(input.lines.map((l) => l.productId))]);

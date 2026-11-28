@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { priceCart, validateFulfilment, parseMajorToMinor, type CartLineInput } from "@restaurant/shared";
 import { loadCatalog, minorToDecimal, OrderInputError, modifierSnapshots } from "./orders";
+import { getCachedSettings } from "./settings-cache";
 
 export interface DeliveryAddressInput {
   line1: string;
@@ -13,7 +14,7 @@ export interface DeliveryAddressInput {
 /** Zones and switches the website needs to offer pickup and delivery. */
 export async function loadFulfilmentOptions(db: PrismaClient) {
   const [settings, zones] = await Promise.all([
-    db.restaurantSettings.findUnique({ where: { id: "singleton" } }),
+    getCachedSettings(db),
     db.deliveryZone.findMany({ where: { isActive: true }, orderBy: { name: "asc" } }),
   ]);
   return {
@@ -42,7 +43,7 @@ export async function createDeliveryOrder(
     now: Date;
   },
 ) {
-  const settings = await db.restaurantSettings.findUnique({ where: { id: "singleton" } });
+  const settings = await getCachedSettings(db);
   if (!settings) throw new OrderInputError("Restaurant settings are not configured");
   if (!settings.deliveryEnabled) throw new OrderInputError("Delivery is not available right now");
 

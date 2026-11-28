@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { priceCart, hashQrToken, canAddOrder, type CartLineInput } from "@restaurant/shared";
 import { loadCatalog, minorToDecimal, OrderInputError, modifierSnapshots } from "./orders";
+import { getCachedSettings } from "./settings-cache";
 
 /** Returns the active table for a raw QR token, or null if the link is unknown, revoked or the table is inactive. */
 export async function findTableByToken(db: PrismaClient, rawToken: string) {
@@ -20,7 +21,7 @@ export async function createTableOrder(db: PrismaClient, input: { rawToken: stri
   const table = await findTableByToken(db, input.rawToken);
   if (!table) throw new OrderInputError("This table link is no longer valid. Please ask a member of staff.");
 
-  const settings = await db.restaurantSettings.findUnique({ where: { id: "singleton" } });
+  const settings = await getCachedSettings(db);
   if (!settings) throw new OrderInputError("Restaurant settings are not configured");
 
   const catalog = await loadCatalog(db, [...new Set(input.lines.map((l) => l.productId))]);

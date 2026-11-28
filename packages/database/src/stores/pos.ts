@@ -1,6 +1,7 @@
 import type { PrismaClient } from "@prisma/client";
 import { priceCart, formatMinor, type CartLineInput, type Minor } from "@restaurant/shared";
 import { loadCatalog, minorToDecimal, OrderInputError, modifierSnapshots } from "./orders";
+import { getCachedSettings } from "./settings-cache";
 
 export type CounterPaymentMethod = "CASH" | "POS_TERMINAL" | "BANK_TRANSFER";
 
@@ -12,7 +13,7 @@ export async function createPosOrder(
   db: PrismaClient,
   input: { lines: CartLineInput[]; customerName: string | null; staffEmail: string; now: Date; cashTendered: Minor | null; method: CounterPaymentMethod },
 ) {
-  const settings = await db.restaurantSettings.findUnique({ where: { id: "singleton" } });
+  const settings = await getCachedSettings(db);
   if (!settings) throw new OrderInputError("Restaurant settings are not configured");
 
   const catalog = await loadCatalog(db, [...new Set(input.lines.map((l) => l.productId))]);
