@@ -1,6 +1,6 @@
 import type { PrismaClient } from "@prisma/client";
 import { priceCart, hashQrToken, canAddOrder, type CartLineInput } from "@restaurant/shared";
-import { loadCatalog, minorToDecimal, OrderInputError, modifierSnapshots } from "./orders";
+import { loadCatalog, minorToDecimal, OrderInputError, writeOrderLines } from "./orders";
 
 /** Returns the active table for a raw QR token, or null if the link is unknown, revoked or the table is inactive. */
 export async function findTableByToken(db: PrismaClient, rawToken: string) {
@@ -52,7 +52,7 @@ export async function createTableOrder(db: PrismaClient, input: { rawToken: stri
       throw new OrderInputError("The bill for this table has been requested. Please ask a member of staff.");
     }
 
-    await tx.order.create({
+    const order = await tx.order.create({
       data: {
         orderNumber,
         channel: "QR_TABLE",
@@ -67,20 +67,10 @@ export async function createTableOrder(db: PrismaClient, input: { rawToken: stri
         total: minorToDecimal(totals.total),
         placedAt: input.now,
         tableSessionId: session.id,
-        items: {
-          create: priced.lines.map((l) => ({
-            productId: l.productId,
-            variantId: l.variantId,
-            nameSnapshot: catalog.get(l.productId)?.name ?? "Item",
-            unitPrice: minorToDecimal(l.unitPrice),
-            quantity: l.quantity,
-            lineTotal: minorToDecimal(l.lineTotal),
-            modifiers: { create: modifierSnapshots(catalog, l.modifierIds) },
-          })),
-        },
         statusHistory: { create: { fromStatus: null, toStatus: "CONFIRMED", note: `Table ${table.number} order` } },
       },
     });
+    await writeOrderLines(tx, order.id, priced.lines, catalog);
   });
 
   return { orderNumber, tableNumber: table.number };

@@ -30,6 +30,35 @@ export function modifierSnapshots(catalog: Map<string, CatalogProduct>, modifier
   });
 }
 
+/**
+ * Writes order lines and their modifiers in two batched statements. A nested create sends one statement
+ * per row, each a database round trip, so a multi-item order paid that cost for every item and modifier.
+ * IDs are generated here so modifiers can point at their lines without reading them back.
+ */
+export async function writeOrderLines(
+  tx: Prisma.TransactionClient,
+  orderId: string,
+  lines: PricedCart["lines"],
+  catalog: Map<string, CatalogProduct>,
+) {
+  const itemRows = lines.map((l) => ({
+    id: crypto.randomUUID(),
+    orderId,
+    productId: l.productId,
+    variantId: l.variantId ?? null,
+    nameSnapshot: catalog.get(l.productId)?.name ?? "Item",
+    unitPrice: minorToDecimal(l.unitPrice),
+    quantity: l.quantity,
+    lineTotal: minorToDecimal(l.lineTotal),
+  }));
+  if (itemRows.length > 0) await tx.orderItem.createMany({ data: itemRows });
+
+  const modifierRows = lines.flatMap((l, i) =>
+    modifierSnapshots(catalog, l.modifierIds).map((m) => ({ ...m, orderItemId: itemRows[i].id })),
+  );
+  if (modifierRows.length > 0) await tx.orderItemModifier.createMany({ data: modifierRows });
+}
+
 export interface PickupOrderInput {
   lines: CartLineInput[];
   customer: { name: string; phone: string; email: string };
@@ -89,10 +118,6 @@ export async function createPickupOrder(db: PrismaClient, input: PickupOrderInpu
     throw new OrderInputError(e instanceof Error ? e.message : "Invalid order");
   }
 
-  const modifierInfo = new Map<string, { name: string; priceDelta: Minor }>();
-  for (const p of catalog.values()) {
-    for (const g of p.modifierGroups) for (const m of g.modifiers) modifierInfo.set(m.id, { name: m.name, priceDelta: m.priceDelta });
-  }
 
   const orderNumber = `SJ-${Date.now().toString(36).toUpperCase()}-${crypto.randomUUID().slice(0, 4).toUpperCase()}`;
   const { totals } = priced;
@@ -116,29 +141,10 @@ export async function createPickupOrder(db: PrismaClient, input: PickupOrderInpu
         total: minorToDecimal(totals.total),
         scheduledFor: input.pickupAt,
         placedAt: input.now,
-        items: {
-          create: priced.lines.map((l) => ({
-            productId: l.productId,
-            variantId: l.variantId,
-            nameSnapshot: catalog.get(l.productId)?.name ?? "Item",
-            unitPrice: minorToDecimal(l.unitPrice),
-            quantity: l.quantity,
-            lineTotal: minorToDecimal(l.lineTotal),
-            modifiers: {
-              create: l.modifierIds.map((id) => {
-                const info = modifierInfo.get(id);
-                return {
-                  modifierId: id,
-                  nameSnapshot: info?.name ?? "Option",
-                  priceSnapshot: minorToDecimal(info?.priceDelta ?? 0n),
-                };
-              }),
-            },
-          })),
-        },
         statusHistory: { create: { fromStatus: null, toStatus: "PENDING", note: "Order placed" } },
       },
     });
+    await writeOrderLines(tx, order.id, priced.lines, catalog);
     await tx.payment.create({
       data: {
         orderId: order.id,
